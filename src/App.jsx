@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import About from './pages/About';
 import Services from './pages/Services';
 import Contact from './pages/Contact';
+import ForgotPassword from './pages/ForgotPassword';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Appointments from './pages/admin/Appointments';
@@ -32,6 +33,9 @@ import AddAdmin from './pages/superadmin/AddAdmin';
 import AddDoctor from './pages/superadmin/AddDoctor';
 import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
 import VerifyAdmin from './pages/superadmin/VerifyAdmin';
+import AdminProfile from './pages/admin/AdminProfile';
+import SuperAdminProfile from './pages/superadmin/SuperAdminProfile';
+import SuperAdminReports from './pages/superadmin/SuperAdminReports';
 
 function App() {
   return (
@@ -45,6 +49,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Admin & Doctor */}
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
@@ -54,6 +59,7 @@ function App() {
           <Route path="/admin/reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
           <Route path="/admin/walkin" element={<ProtectedRoute adminOnly><WalkInPatient /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute adminOnly><AdminProfile /></ProtectedRoute>} />
 
           {/* Patient */}
           <Route path="/patient/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
@@ -72,6 +78,8 @@ function App() {
           <Route path="/superadmin/add-doctor" element={<ProtectedRoute superAdminOnly><AddDoctor /></ProtectedRoute>} />
           <Route path="/superadmin/settings" element={<ProtectedRoute superAdminOnly><SuperAdminSettings /></ProtectedRoute>} />
           <Route path="/superadmin/verify-admin" element={<ProtectedRoute superAdminOnly><VerifyAdmin /></ProtectedRoute>} />
+          <Route path="/superadmin/profile" element={<ProtectedRoute superAdminOnly><SuperAdminProfile /></ProtectedRoute>} />
+          <Route path="/superadmin/reports" element={<ProtectedRoute superAdminOnly><SuperAdminReports /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

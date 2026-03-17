@@ -70,8 +70,10 @@ const Register = () => {
       password: formData.password
     });
 
-    if (result.success) navigate('/');
-    else setError(result.error || 'Failed to register');
+    if (result.success) {
+      sessionStorage.setItem('newlyRegistered', '1');
+      navigate('/patient/setup-profile');
+    } else setError(result.error || 'Failed to register');
     setLoading(false);
   };
 
@@ -103,14 +105,13 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
+      <Link
+        to="/"
+        className="fixed top-4 left-4 p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-50 text-4xl font-black leading-none"
+      >
+        ←
+      </Link>
       <Card className="w-full max-w-md p-8">
-        <Link
-          to="/"
-          className="absolute top-4 left-4 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 font-medium"
-        >
-          <span className="text-xl">←</span>
-          <span>Back to Home</span>
-        </Link>
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>

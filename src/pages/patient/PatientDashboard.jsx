@@ -25,7 +25,7 @@ const PatientDashboard = () => {
       <PatientSidebar />
       <div className="flex-1 ml-64">
         <PatientNavbar />
-        <main className="mt-16 p-6 bg-gray-50 min-h-screen">
+        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user?.name || 'Patient'}</h1>
             <p className="text-gray-500 mb-6">Here's your health overview.</p>

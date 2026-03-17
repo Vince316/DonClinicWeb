@@ -2,14 +2,7 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 
 const About = () => {
-  const team = [
-    { name: 'Dr. Maria Santos', role: 'Chief Medical Officer', specialty: 'Cardiology' },
-    { name: 'Dr. James Reyes', role: 'Head of Surgery', specialty: 'General Surgery' },
-    { name: 'Dr. Anna Cruz', role: 'Lead Pediatrician', specialty: 'Pediatrics' },
-    { name: 'Dr. Carlos Mendoza', role: 'Neurology Head', specialty: 'Neurology' },
-  ];
-
-  return (
+return (
     <div className="min-h-screen bg-white">
       <Navbar />
 
@@ -67,29 +60,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
-            <p className="text-gray-600">Our experienced medical professionals are dedicated to your health.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member) => (
-              <div key={member.name} className="bg-white p-6 rounded-2xl border border-gray-100 text-center shadow-sm">
-                <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">
-                  {member.name.split(' ')[1][0]}
-                </div>
-                <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-sm text-sky-600 font-medium">{member.role}</p>
-                <p className="text-sm text-gray-500 mt-1">{member.specialty}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+<Footer />
     </div>
   );
 };

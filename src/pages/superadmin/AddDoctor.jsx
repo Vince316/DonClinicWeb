@@ -76,7 +76,7 @@ const AddDoctor = () => {
       <SuperAdminSidebar />
       <div className="flex-1 ml-64">
         <SuperAdminNavbar />
-        <main className="mt-16 p-6 bg-gray-50 min-h-screen">
+        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white p-8 rounded-2xl shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-6">

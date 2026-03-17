@@ -1,35 +1,45 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db, collection, getDocs, deleteDoc, doc } from '../../lib/firebase';
+import { db, collection, getDocs, deleteDoc, doc, updateDoc } from '../../lib/firebase';
 import SuperAdminSidebar from '../../components/superadmin/SuperAdminSidebar';
 import SuperAdminNavbar from '../../components/superadmin/SuperAdminNavbar';
-import Button from '../../components/ui/Button';
 
 const ManageAdmins = () => {
-  const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchAdmins(); }, []);
 
   const fetchAdmins = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'admins'));
-      setAdmins(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-    }
+      const snap = await getDocs(collection(db, 'admins'));
+      setAdmins(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
-  const handleDelete = async (adminId) => {
-    if (!confirm('Are you sure you want to delete this admin?')) return;
+  const handleToggleStatus = async () => {
+    const newStatus = selected.status === 'Active' ? 'Inactive' : 'Active';
+    setSaving(true);
     try {
-      await deleteDoc(doc(db, 'admins', adminId));
-      alert('Admin deleted successfully');
-      fetchAdmins();
-    } catch (error) {
-      console.error('Error deleting admin:', error);
-      alert('Failed to delete admin');
-    }
+      await updateDoc(doc(db, 'admins', selected.id), { status: newStatus });
+      const updated = { ...selected, status: newStatus };
+      setAdmins(prev => prev.map(a => a.id === selected.id ? updated : a));
+      setSelected(updated);
+    } catch (err) { console.error(err); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete admin "${selected.name}"? This cannot be undone.`)) return;
+    setSaving(true);
+    try {
+      await deleteDoc(doc(db, 'admins', selected.id));
+      setAdmins(prev => prev.filter(a => a.id !== selected.id));
+      setSelected(null);
+    } catch (err) { console.error(err); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -37,45 +47,34 @@ const ManageAdmins = () => {
       <SuperAdminSidebar />
       <div className="flex-1 ml-64">
         <SuperAdminNavbar />
-        <main className="mt-16 p-6 bg-gray-50 min-h-screen">
+        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
           <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Manage Admins</h1>
-              <Button variant="primary" onClick={() => navigate('/superadmin/add-admin')}>+ Add Admin</Button>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage Admins</h1>
 
-            {admins.length === 0 ? (
-              <div className="bg-white p-12 rounded-xl border border-gray-200 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Admins Yet</h3>
-                <p className="text-gray-600">Create your first admin account to get started.</p>
-              </div>
+            {loading ? (
+              <div className="text-center py-12 text-gray-400">Loading...</div>
+            ) : admins.length === 0 ? (
+              <div className="bg-white p-12 rounded-xl border border-gray-200 text-center text-gray-500">No admins found.</div>
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      {['Name', 'Email', 'Phone', 'Status', 'Created'].map(h => (
+                        <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {admins.map((admin) => (
-                      <tr key={admin.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{admin.name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{admin.email}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{admin.phone}</td>
-                        <td className="px-6 py-4"><span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">{admin.status}</span></td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{new Date(admin.createdAt).toLocaleDateString()}</td>
+                    {admins.map(a => (
+                      <tr key={a.id} onClick={() => setSelected(a)} className="hover:bg-orange-50 cursor-pointer transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.name}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{a.email}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{a.phone}</td>
                         <td className="px-6 py-4">
-                          <button onClick={() => handleDelete(admin.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
+                          <span className={`px-3 py-1 text-xs rounded-full font-medium ${a.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{a.status}</span>
                         </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -85,6 +84,62 @@ const ManageAdmins = () => {
           </div>
         </main>
       </div>
+
+      {/* Detail Modal */}
+      {selected && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <h2 className="text-lg font-bold text-gray-900">Admin Details</h2>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 text-xl font-bold flex-shrink-0">
+                  {selected.name?.[0] || 'A'}
+                </div>
+                <div>
+                  <p className="text-base font-semibold text-gray-900">{selected.name}</p>
+                  <p className="text-sm text-gray-500">{selected.email}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${selected.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{selected.status}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ['Phone', selected.phone],
+                  ['Role', selected.role || 'Admin'],
+                  ['Created', selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : '—'],
+                  ['Status', selected.status],
+                ].map(([label, val]) => (
+                  <div key={label} className="bg-gray-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-400">{label}</p>
+                    <p className="text-sm font-medium text-gray-800 mt-0.5">{val || '—'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0 flex gap-3">
+              <button
+                onClick={handleToggleStatus}
+                disabled={saving}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${selected.status === 'Active' ? 'border border-yellow-300 text-yellow-700 hover:bg-yellow-50' : 'border border-green-300 text-green-700 hover:bg-green-50'}`}
+              >
+                {saving ? 'Saving...' : selected.status === 'Active' ? 'Set Inactive' : 'Set Active'}
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

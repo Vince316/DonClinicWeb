@@ -39,9 +39,11 @@ const Footer = () => {
             <h4 className="font-semibold mb-4 text-gray-100">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>info@donclinic.com</li>
-              <li>+1 (555) 123-4567</li>
-              <li>123 Medical Drive</li>
-              <li>Health City, HC 12345</li>
+              <li>+639 1234 5678</li>
+              <li>Aznar ST. Sambag 2, Urgello</li>
+              <li>Cebu City 6000</li>
+              <li>Mon–Fri: 8:00 AM – 6:00 PM</li>
+              <li>Sat: 8:00 AM – 5:00 PM</li>
             </ul>
           </div>
         </div>

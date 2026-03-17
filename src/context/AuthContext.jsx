@@ -153,6 +153,7 @@ export const AuthProvider = ({ children }) => {
 
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
+      let isNewGoogleUser = false;
 
       let role = 'patient';
       let name = firebaseUser.displayName || 'User';
@@ -183,6 +184,7 @@ export const AuthProvider = ({ children }) => {
                 status: 'Active',
                 authProvider: 'google'
               });
+              isNewGoogleUser = true;
             }
           }
         }
@@ -190,7 +192,7 @@ export const AuthProvider = ({ children }) => {
 
       const userData = { uid: firebaseUser.uid, email: firebaseUser.email, name, role };
       setUser(userData);
-      return { success: true, user: userData };
+      return { success: true, user: userData, isNewUser: isNewGoogleUser };
     } catch (err) {
       let errorMessage = 'Failed to sign in with Google';
       if (err.code === 'auth/popup-closed-by-user') errorMessage = 'Sign-in popup was closed';

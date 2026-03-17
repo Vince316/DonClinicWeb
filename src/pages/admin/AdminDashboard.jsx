@@ -33,7 +33,7 @@ const AdminDashboard = () => {
       <AdminSidebar />
       <div className="flex-1 ml-64">
         <AdminNavbar />
-        <main className="mt-16 p-6 bg-gray-50 min-h-screen">
+        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
             <div className="grid sm:grid-cols-3 gap-6 mb-8">

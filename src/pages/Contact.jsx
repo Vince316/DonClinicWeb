@@ -39,7 +39,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800">Address</p>
-                  <p>123 Health Street, Medical District<br />City, Province 1000</p>
+                  <p>Aznar ST. Sambag 2, Urgello<br />Cebu City 6000</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -50,7 +50,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800">Phone</p>
-                  <p>+63 (2) 8123-4567</p>
+                  <p>+639 1234 5678</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -72,7 +72,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800">Hours</p>
-                  <p>Mon–Fri: 8:00 AM – 6:00 PM<br />Sat: 8:00 AM – 12:00 PM</p>
+                  <p>Mon–Fri: 8:00 AM – 6:00 PM<br />Sat: 8:00 AM – 5:00 PM</p>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function Contact() {
                   value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="your@email.com"
+                  placeholder="Email Address"
                 />
               </div>
               <div>

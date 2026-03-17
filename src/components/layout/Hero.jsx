@@ -159,10 +159,7 @@ const Hero = () => {
 
           <div className="relative mt-8 md:mt-0">
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-8">
-              <div className="flex mb-6 bg-gray-100 rounded-xl p-1">
-                <button onClick={() => setActiveTab('signin')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'signin' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Sign In</button>
-                <button onClick={() => setActiveTab('register')} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Register</button>
-              </div>
+
 
               {activeTab === 'signin' ? (
                 <div className="space-y-4">
@@ -187,6 +184,14 @@ const Hero = () => {
                     <Link to="/forgot-password" className="text-sm text-sky-600 hover:text-sky-700 hover:underline font-medium">Forgot Password?</Link>
                   </div>
 
+                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                    <Link to="/register">
+                      <button type="button" className="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors">
+                        Create New Account
+                      </button>
+                    </Link>
+                  </div>
+
                   <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300"></div></div>
                     <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
@@ -197,13 +202,7 @@ const Hero = () => {
                     <span className="text-sm font-medium text-gray-700">Sign in with Google</span>
                   </button>
 
-                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-                    <Link to="/register">
-                      <button type="button" className="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors">
-                        Create New Account
-                      </button>
-                    </Link>
-                  </div>
+
                 </div>
               ) : (
                 <div className="space-y-4">
