@@ -24,7 +24,8 @@ const SignIn = () => {
     if (result.success) {
       const userRole = result.user?.role || 'patient';
       if (userRole === 'superadmin') navigate('/superadmin');
-      else if (userRole === 'admin' || userRole === 'doctor') navigate('/admin');
+      else if (userRole === 'admin') navigate('/admin');
+      else if (userRole === 'doctor') navigate('/doctor');
       else navigate('/patient/dashboard');
     } else {
       setError(result.error || 'Failed to sign in');
@@ -42,7 +43,8 @@ const SignIn = () => {
     if (result.success) {
       const userRole = result.user?.role || 'patient';
       if (userRole === 'superadmin') navigate('/superadmin');
-      else if (userRole === 'admin' || userRole === 'doctor') navigate('/admin');
+      else if (userRole === 'admin') navigate('/admin');
+      else if (userRole === 'doctor') navigate('/doctor');
       else {
         if (result.isNewUser) sessionStorage.setItem('newlyRegistered', '1');
         navigate('/patient/dashboard');
@@ -93,7 +95,7 @@ const SignIn = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter Password"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
                 required
               />
               <button
@@ -116,7 +118,7 @@ const SignIn = () => {
           </div>
 
           <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-sky-600 hover:text-sky-700 hover:underline font-medium">
+            <Link to="/forgot-password" className="text-sm text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">
               Forgot Password?
             </Link>
           </div>
@@ -155,7 +157,7 @@ const SignIn = () => {
 
         <p className="mt-6 text-center text-gray-600">
           Don't have an account?{' '}
-          <Link to="/register" className="text-sky-600 hover:text-sky-700 hover:underline font-medium">
+          <Link to="/register" className="text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">
             Register
           </Link>
         </p>

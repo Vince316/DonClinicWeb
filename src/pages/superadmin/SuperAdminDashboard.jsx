@@ -14,7 +14,7 @@ const EyeIcon = ({ show }) => show ? (
 const InputField = ({ label, type = 'text', value, onChange, required, children }) => (
   <div>
     <label className="block text-xs font-medium text-gray-600 mb-1">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-    {children || <input type={type} value={value} onChange={onChange} required={required} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />}
+    {children || <input type={type} value={value} onChange={onChange} required={required} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steelblue-400" />}
   </div>
 );
 
@@ -25,7 +25,7 @@ const PwField = ({ label, value, onChange, required }) => {
       <label className="block text-xs font-medium text-gray-600 mb-1">{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
       <div className="relative">
         <input type={show ? 'text' : 'password'} value={value} onChange={onChange} required={required}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 pr-9" />
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steelblue-400 pr-9" />
         <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><EyeIcon show={show} /></button>
       </div>
     </div>
@@ -109,7 +109,7 @@ const SuperAdminDashboard = () => {
             {/* Stats */}
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { label: 'Total Admins', value: stats.admins, color: 'text-blue-600' },
+                { label: 'Total Admins', value: stats.admins, color: 'text-steelblue-500' },
                 { label: 'Total Doctors', value: stats.doctors, color: 'text-green-600' },
                 { label: 'Total Patients', value: stats.patients, color: 'text-purple-600' },
               ].map(c => (
@@ -122,7 +122,7 @@ const SuperAdminDashboard = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <button onClick={() => setModal('admin')} className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white text-base font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+              <button onClick={() => setModal('admin')} className="flex items-center gap-3 px-8 py-4 bg-steelblue-500 text-white text-base font-semibold rounded-xl hover:bg-steelblue-600 transition-colors shadow-sm">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 Add Admin
               </button>
@@ -154,7 +154,7 @@ const SuperAdminDashboard = () => {
               </form>
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0">
-              <button form="admin-form" type="submit" disabled={adminLoading} className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+              <button form="admin-form" type="submit" disabled={adminLoading} className="w-full py-2.5 bg-steelblue-500 text-white text-sm font-medium rounded-lg hover:bg-steelblue-600 transition-colors disabled:opacity-50">
                 {adminLoading ? 'Creating...' : 'Create Admin Account'}
               </button>
             </div>
@@ -178,7 +178,7 @@ const SuperAdminDashboard = () => {
                   <InputField label="Email" type="email" value={doctorForm.email} onChange={e => setD('email', e.target.value)} required />
                   <InputField label="Phone" type="tel" value={doctorForm.phone} onChange={e => setD('phone', e.target.value)} required />
                   <InputField label="Specialty" required>
-                    <select value={doctorForm.specialty} onChange={e => setD('specialty', e.target.value)} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                    <select value={doctorForm.specialty} onChange={e => setD('specialty', e.target.value)} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steelblue-400">
                       <option value="">— Select —</option>
                       {SPECIALTIES.map(s => <option key={s}>{s}</option>)}
                     </select>

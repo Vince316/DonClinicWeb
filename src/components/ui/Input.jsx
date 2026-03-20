@@ -10,7 +10,7 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, required, n
         required={required}
         name={name}
         maxLength={maxLength}
-        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition-colors ${className}`}
+        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none transition-colors ${className}`}
       />
     </div>
   );

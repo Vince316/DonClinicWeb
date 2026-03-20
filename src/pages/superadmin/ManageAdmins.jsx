@@ -96,7 +96,7 @@ const ManageAdmins = () => {
 
             <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 text-xl font-bold flex-shrink-0">
+                <div className="w-14 h-14 bg-steelblue-100 rounded-full flex items-center justify-center text-steelblue-600 text-xl font-bold flex-shrink-0">
                   {selected.name?.[0] || 'A'}
                 </div>
                 <div>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { fetchSignInMethodsForEmail } from 'firebase/auth';
+import emailjs from '@emailjs/browser';
+import { auth, db, collection, addDoc, getDocs, query, where } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -19,6 +22,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [codeSentMsg, setCodeSentMsg] = useState('');
   const [timer, setTimer] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,26 +45,87 @@ const Register = () => {
   const sendVerificationCode = async () => {
     if (!formData.email) { setError('Please enter your email'); return; }
     setLoading(true);
-    setTimeout(() => {
+    setError('');
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, formData.email);
+      if (methods.length > 0) {
+        setError('This email is already registered. Please sign in instead.');
+        setLoading(false);
+        return;
+      }
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await addDoc(collection(db, 'verificationCodes'), {
+        email: formData.email,
+        code,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      });
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          to_name: `${formData.firstName} ${formData.lastName}`,
+          to_email: formData.email,
+          otp_code: code
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      );
       setCodeSent(true);
       setTimer(60);
-      setLoading(false);
-      alert('Verification code sent to ' + formData.email);
-    }, 1000);
+      setError('');
+      setCodeSentMsg(`Verification code sent to ${formData.email}`);
+    } catch (err) {
+      const msg = err?.text || err?.message || JSON.stringify(err);
+      setError(`Failed to send code: ${msg}`);
+      console.error('EmailJS error:', err);
+    }
+    setLoading(false);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email) { setError('Please fill in all fields'); return; }
     if (!codeSent) { setError('Please verify your email first'); return; }
     if (!formData.verificationCode) { setError('Please enter verification code'); return; }
+    setLoading(true);
     setError('');
-    setStep(2);
+    try {
+      const q = query(
+        collection(db, 'verificationCodes'),
+        where('email', '==', formData.email),
+        where('code', '==', formData.verificationCode)
+      );
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        setError('Invalid verification code. Please try again.');
+        setLoading(false);
+        return;
+      }
+      const codeDoc = snapshot.docs[0].data();
+      if (new Date() > codeDoc.expiresAt.toDate()) {
+        setError('Verification code expired. Please request a new one.');
+        setLoading(false);
+        return;
+      }
+      setStep(2);
+    } catch (err) {
+      setError('Failed to verify code. Please try again.');
+      console.error(err);
+    }
+    setLoading(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return; }
+    const pwRules = [
+      [formData.password.length < 8, 'Password must be at least 8 characters.'],
+      [!/[A-Za-z]/.test(formData.password), 'Password must contain at least one letter.'],
+      [!/[0-9]/.test(formData.password), 'Password must contain at least one number.'],
+      [!/[^A-Za-z0-9]/.test(formData.password), 'Password must contain at least one special character.'],
+    ];
+    const pwError = pwRules.find(([cond]) => cond);
+    if (pwError) { setError(pwError[1]); return; }
     if (!formData.agreeTerms) { setError('Please agree to the Terms and Conditions'); return; }
 
     setLoading(true);
@@ -135,18 +200,22 @@ const Register = () => {
                 <input
                   type="email" name="email" value={formData.email} onChange={handleChange}
                   placeholder="Email Address"
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
                   required
                 />
                 <button
                   type="button" onClick={sendVerificationCode}
                   disabled={loading || (codeSent && timer > 0)}
-                  className="px-4 py-2.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
+                  className="px-4 py-2.5 bg-steelblue-500 text-white rounded-lg hover:bg-steelblue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
                 >
                   {loading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send Code'}
                 </button>
               </div>
             </div>
+
+            {codeSentMsg && (
+              <p className="text-sm text-green-600">{codeSentMsg}</p>
+            )}
 
             {codeSent && (
               <Input label="Verification Code" name="verificationCode" value={formData.verificationCode} onChange={handleChange} placeholder="Enter 6-digit code" maxLength={6} required />
@@ -183,7 +252,7 @@ const Register = () => {
                 <input
                   type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange}
                   placeholder="Enter Password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
                   required
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
@@ -198,7 +267,7 @@ const Register = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
                   placeholder="Confirm Password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
                   required
                 />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
@@ -208,12 +277,12 @@ const Register = () => {
             </div>
 
             <div className="flex items-start gap-3">
-              <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="mt-1 w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500" required />
+              <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="mt-1 w-4 h-4 text-steelblue-500 border-gray-300 rounded focus:ring-steelblue-400" required />
               <label className="text-sm text-gray-700">
                 I agree to the{' '}
-                <Link to="/terms" className="text-sky-600 hover:text-sky-700 font-medium">Terms and Conditions</Link>
+                <Link to="/terms" className="text-steelblue-500 hover:text-steelblue-600 font-medium">Terms and Conditions</Link>
                 {' '}and{' '}
-                <Link to="/privacy" className="text-sky-600 hover:text-sky-700 font-medium">Privacy Policy</Link>
+                <Link to="/privacy" className="text-steelblue-500 hover:text-steelblue-600 font-medium">Privacy Policy</Link>
               </label>
             </div>
 
@@ -226,7 +295,7 @@ const Register = () => {
 
         <p className="mt-6 text-center text-gray-600">
           Already have an account?{' '}
-          <Link to="/signin" className="text-sky-600 hover:text-sky-700 hover:underline font-medium">Sign In</Link>
+          <Link to="/signin" className="text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Sign In</Link>
         </p>
       </Card>
     </div>

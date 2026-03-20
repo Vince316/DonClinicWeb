@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db, collection, query, where, getDocs } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import PatientSidebar from '../../components/patient/PatientSidebar';
@@ -6,6 +7,7 @@ import PatientNavbar from '../../components/patient/PatientNavbar';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
@@ -27,8 +29,19 @@ const PatientDashboard = () => {
         <PatientNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user?.name || 'Patient'}</h1>
-            <p className="text-gray-500 mb-6">Here's your health overview.</p>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name || 'Patient'}</h1>
+                <p className="text-gray-500">Here's your health overview.</p>
+              </div>
+              <button
+                onClick={() => navigate('/patient/book')}
+                className="px-5 py-2.5 bg-steelblue-500 hover:bg-steelblue-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Book an Appointment
+              </button>
+            </div>
+            <div className="mb-6" />
 
             <div className="grid sm:grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-xl border border-gray-200">

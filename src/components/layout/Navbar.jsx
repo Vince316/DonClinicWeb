@@ -35,7 +35,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-sky-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">DC</div>
+          <div className="w-9 h-9 bg-steelblue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">DC</div>
           <span className="font-bold text-gray-900 text-lg">DonClinic</span>
         </Link>
 
@@ -43,11 +43,11 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to}
-              className={`relative text-base font-semibold transition-colors pb-1
-                ${isActive(to) ? 'text-sky-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              className={`relative text-base font-semibold transition-colors pb-0.5
+                ${isActive(to) ? 'text-steelblue-500' : 'text-gray-600 hover:text-gray-900'}`}>
               {label}
               {isActive(to) && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sky-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-steelblue-500 rounded-full" />
               )}
             </Link>
           ))}
@@ -59,12 +59,12 @@ const Navbar = () => {
             <>
               <Link
                 to={user?.role === 'superadmin' ? '/superadmin' : user?.role === 'admin' || user?.role === 'doctor' ? '/admin' : '/patient/dashboard'}
-                className="px-4 py-2 text-sm font-medium text-sky-600 hover:text-sky-700 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-steelblue-500 hover:text-steelblue-600 transition-colors"
               >
                 Dashboard
               </Link>
               <button onClick={handleLogout}
-                className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors">
+                className="px-4 py-2 bg-steelblue-500 text-white text-sm font-medium rounded-lg hover:bg-steelblue-600 transition-colors">
                 Logout
               </button>
             </>
@@ -92,7 +92,7 @@ const Navbar = () => {
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to}
               className={`block px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors
-                ${isActive(to) ? 'bg-sky-50 text-sky-600' : 'text-gray-700 hover:bg-gray-50'}`}>
+                ${isActive(to) ? 'bg-steelblue-50 text-steelblue-500' : 'text-gray-700 hover:bg-gray-50'}`}>
               {label}
             </Link>
           ))}
@@ -100,7 +100,7 @@ const Navbar = () => {
             <div className="pt-2 border-t border-gray-100 space-y-1">
               <Link
                 to={user?.role === 'superadmin' ? '/superadmin' : user?.role === 'admin' || user?.role === 'doctor' ? '/admin' : '/patient/dashboard'}
-                className="block px-4 py-2.5 rounded-lg text-sm font-semibold text-sky-600 hover:bg-sky-50">
+                className="block px-4 py-2.5 rounded-lg text-sm font-semibold text-steelblue-500 hover:bg-steelblue-50">
                 Dashboard
               </Link>
               <button onClick={handleLogout}

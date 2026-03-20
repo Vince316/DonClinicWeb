@@ -43,17 +43,17 @@ const Profile = () => {
 
   const Field = ({ label, name, type = 'text', options }) => (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-gray-100 gap-2">
-      <span className="text-sm text-gray-500 w-32 flex-shrink-0">{label}</span>
+      <label htmlFor={name} className="text-sm text-gray-500 w-32 flex-shrink-0">{label}</label>
       {editing && name !== 'email' ? (
         options ? (
-          <select value={profile[name]} onChange={e => setProfile({ ...profile, [name]: e.target.value })}
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+          <select id={name} value={profile[name]} onChange={e => setProfile({ ...profile, [name]: e.target.value })}
+            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-steelblue-400 outline-none">
             <option value="">Select</option>
             {options.map(o => <option key={o}>{o}</option>)}
           </select>
         ) : (
-          <input type={type} value={profile[name] || ''} onChange={e => setProfile({ ...profile, [name]: e.target.value })}
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 outline-none" />
+          <input id={name} type={type} value={profile[name] || ''} onChange={e => setProfile({ ...profile, [name]: e.target.value })}
+            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-steelblue-400 outline-none" />
         )
       ) : (
         <span className="text-sm font-medium text-gray-900">{profile[name] || '—'}</span>
@@ -75,13 +75,13 @@ const Profile = () => {
                 {success && <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">Profile updated successfully.</div>}
 
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  <div className="w-16 h-16 bg-gradient-to-br from-steelblue-400 to-steelblue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                     {profile.name?.[0] || user?.name?.[0] || 'P'}
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">{profile.name || user?.name}</h2>
                     <p className="text-gray-500 text-sm">{profile.email || user?.email}</p>
-                    <span className="text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-medium capitalize">Patient</span>
+                    <span className="text-xs bg-steelblue-100 text-steelblue-600 px-2 py-0.5 rounded-full font-medium capitalize">Patient</span>
                   </div>
                 </div>
 

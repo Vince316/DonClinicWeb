@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { fetchSignInMethodsForEmail } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 
@@ -22,6 +24,14 @@ const GoogleIcon = () => (
     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
   </svg>
 );
+
+const validatePassword = (pw) => {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (!/[A-Za-z]/.test(pw)) return 'Password must contain at least one letter.';
+  if (!/[0-9]/.test(pw)) return 'Password must contain at least one number.';
+  if (!/[^A-Za-z0-9]/.test(pw)) return 'Password must contain at least one special character.';
+  return null;
+};
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -58,7 +68,8 @@ const Hero = () => {
       if (result.success) {
         const role = result.user?.role || 'patient';
         if (role === 'superadmin') navigate('/superadmin');
-        else if (role === 'admin' || role === 'doctor') navigate('/admin');
+        else if (role === 'admin') navigate('/admin');
+        else if (role === 'doctor') navigate('/doctor');
         else navigate('/patient/dashboard');
       } else {
         setSignInError(result.error || 'Failed to sign in');
@@ -79,7 +90,8 @@ const Hero = () => {
     if (result.success) {
       const role = result.user?.role || 'patient';
       if (role === 'superadmin') navigate('/superadmin');
-      else if (role === 'admin' || role === 'doctor') navigate('/admin');
+      else if (role === 'admin') navigate('/admin');
+      else if (role === 'doctor') navigate('/doctor');
       else navigate('/patient/dashboard');
     } else {
       const errorMsg = result.error || 'Failed to sign in with Google';
@@ -98,6 +110,14 @@ const Hero = () => {
   const sendVerificationCode = async () => {
     if (!formData.email) { setRegisterError('Please enter your email'); return; }
     setRegisterLoading(true);
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, formData.email);
+      if (methods.length > 0) {
+        setRegisterError('This email is already registered. Please sign in instead.');
+        setRegisterLoading(false);
+        return;
+      }
+    } catch {}
     setTimeout(() => {
       setCodeSent(true);
       setTimer(60);
@@ -118,6 +138,8 @@ const Hero = () => {
     e.preventDefault();
     setRegisterError('');
     if (formData.password !== formData.confirmPassword) { setRegisterError('Passwords do not match'); return; }
+    const pwError = validatePassword(formData.password);
+    if (pwError) { setRegisterError(pwError); return; }
     setRegisterLoading(true);
     const result = await register({ name: `${formData.firstName} ${formData.lastName}`, email: formData.email, password: formData.password });
     if (result.success) navigate('/patient/dashboard');
@@ -143,15 +165,15 @@ const Hero = () => {
             </div>
             <div className="flex gap-6 sm:gap-8 pt-6 sm:pt-8 justify-center md:justify-start">
               <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">10K+</div>
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">10K+</div>
                 <div className="text-sm sm:text-base text-gray-600">Patients</div>
               </div>
               <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">50+</div>
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">50+</div>
                 <div className="text-sm sm:text-base text-gray-600">Doctors</div>
               </div>
               <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">98%</div>
+                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">98%</div>
                 <div className="text-sm sm:text-base text-gray-600">Satisfaction</div>
               </div>
             </div>
@@ -160,19 +182,24 @@ const Hero = () => {
           <div className="relative mt-8 md:mt-0">
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-8">
 
-
               {activeTab === 'signin' ? (
                 <div className="space-y-4">
                   {signInError && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">{signInError}</div>}
 
                   <form onSubmit={handleSignIn} className="space-y-3">
-                    <input type="email" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Email address" required />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input type="email" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Enter email address" required />
+                    </div>
 
-                    <div className="relative">
-                      <input type={showSignInPassword ? 'text' : 'password'} value={signInPassword} onChange={(e) => setSignInPassword(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Password" required />
-                      <button type="button" onClick={() => setShowSignInPassword(!showSignInPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                        <EyeIcon show={showSignInPassword} />
-                      </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                      <div className="relative">
+                        <input type={showSignInPassword ? 'text' : 'password'} value={signInPassword} onChange={(e) => setSignInPassword(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Enter password" required />
+                        <button type="button" onClick={() => setShowSignInPassword(!showSignInPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                          <EyeIcon show={showSignInPassword} />
+                        </button>
+                      </div>
                     </div>
 
                     <Button type="submit" variant="primary" className="w-full" disabled={signInLoading}>
@@ -181,7 +208,7 @@ const Hero = () => {
                   </form>
 
                   <div className="text-center">
-                    <Link to="/forgot-password" className="text-sm text-sky-600 hover:text-sky-700 hover:underline font-medium">Forgot Password?</Link>
+                    <Link to="/forgot-password" className="text-sm text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Forgot Password?</Link>
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-gray-200 text-center">
@@ -201,8 +228,6 @@ const Hero = () => {
                     <GoogleIcon />
                     <span className="text-sm font-medium text-gray-700">Sign in with Google</span>
                   </button>
-
-
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -211,19 +236,31 @@ const Hero = () => {
                   {step === 1 ? (
                     <>
                       <div className="grid grid-cols-2 gap-3">
-                        <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="First Name" required />
-                        <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Last Name" required />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                          <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="First name" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                          <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Last name" required />
+                        </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        <input type="email" name="email" value={formData.email} onChange={handleChange} className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Email Address" required />
-                        <button type="button" onClick={sendVerificationCode} disabled={registerLoading || (codeSent && timer > 0)} className="px-3 py-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap">
-                          {registerLoading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send'}
-                        </button>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <div className="flex gap-2">
+                          <input type="email" name="email" value={formData.email} onChange={handleChange} className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Enter email address" required />
+                          <button type="button" onClick={sendVerificationCode} disabled={registerLoading || (codeSent && timer > 0)} className="px-3 py-3 bg-steelblue-500 text-white rounded-lg hover:bg-steelblue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap">
+                            {registerLoading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send'}
+                          </button>
+                        </div>
                       </div>
 
                       {codeSent && (
-                        <input type="text" name="verificationCode" value={formData.verificationCode} onChange={handleChange} placeholder="Enter 6-digit code" maxLength={6} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" required />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+                          <input type="text" name="verificationCode" value={formData.verificationCode} onChange={handleChange} placeholder="Enter 6-digit code" maxLength={6} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" required />
+                        </div>
                       )}
 
                       <div className="relative my-4">
@@ -240,18 +277,25 @@ const Hero = () => {
                     </>
                   ) : (
                     <form onSubmit={handleRegister} className="space-y-3">
-                      <div className="relative">
-                        <input type={showRegisterPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Password" required />
-                        <button type="button" onClick={() => setShowRegisterPassword(!showRegisterPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                          <EyeIcon show={showRegisterPassword} />
-                        </button>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <div className="relative">
+                          <input type={showRegisterPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Enter password" required />
+                          <button type="button" onClick={() => setShowRegisterPassword(!showRegisterPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <EyeIcon show={showRegisterPassword} />
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Min. 8 characters with letters, numbers & special characters.</p>
                       </div>
 
-                      <div className="relative">
-                        <input type={showRegisterConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none" placeholder="Confirm Password" required />
-                        <button type="button" onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                          <EyeIcon show={showRegisterConfirmPassword} />
-                        </button>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                        <div className="relative">
+                          <input type={showRegisterConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Confirm password" required />
+                          <button type="button" onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <EyeIcon show={showRegisterConfirmPassword} />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex gap-2 pt-2">

@@ -120,7 +120,7 @@ const BookAppointment = () => {
                       {SPECIALTIES.map(s => (
                         <button key={s} onClick={() => setSpecialty(s)}
                           className={`p-3 rounded-lg border-2 text-sm font-medium text-left transition-colors
-                            ${specialty === s ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 hover:border-sky-300 text-gray-700'}`}>
+                            ${specialty === s ? 'border-steelblue-500 bg-steelblue-50 text-steelblue-600' : 'border-gray-200 hover:border-steelblue-300 text-gray-700'}`}>
                           {s}
                         </button>
                       ))}
@@ -137,7 +137,7 @@ const BookAppointment = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                       <input type="date" min={today} value={date}
                         onChange={e => { setDate(e.target.value); setTimeSlot(''); }}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none" />
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 outline-none" />
                     </div>
                     {date && (
                       <div>
@@ -146,7 +146,7 @@ const BookAppointment = () => {
                           {TIME_SLOTS.map(slot => (
                             <button key={slot} onClick={() => setTimeSlot(slot)}
                               className={`py-2 px-1 rounded-lg border-2 text-xs font-medium transition-colors
-                                ${timeSlot === slot ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 hover:border-sky-300 text-gray-700'}`}>
+                                ${timeSlot === slot ? 'border-steelblue-500 bg-steelblue-50 text-steelblue-600' : 'border-gray-200 hover:border-steelblue-300 text-gray-700'}`}>
                               {slot}
                             </button>
                           ))}
@@ -168,7 +168,7 @@ const BookAppointment = () => {
                       {(SERVICES[specialty] || []).map(s => (
                         <button key={s} onClick={() => setService(s)}
                           className={`p-3 rounded-lg border-2 text-sm font-medium text-left transition-colors
-                            ${service === s ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 hover:border-sky-300 text-gray-700'}`}>
+                            ${service === s ? 'border-steelblue-500 bg-steelblue-50 text-steelblue-600' : 'border-gray-200 hover:border-steelblue-300 text-gray-700'}`}>
                           {s}
                         </button>
                       ))}
@@ -201,7 +201,7 @@ const BookAppointment = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Visit <span className="text-red-500">*</span></label>
                       <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
                         placeholder="Describe your symptoms or reason for visit..."
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none resize-none" />
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 outline-none resize-none" />
                     </div>
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={() => setStep(3)} className="w-full">Back</Button>

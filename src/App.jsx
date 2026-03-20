@@ -25,6 +25,7 @@ import EHR from './pages/patient/EHR';
 import Profile from './pages/patient/Profile';
 import Prescriptions from './pages/patient/Prescriptions';
 import SetupProfile from './pages/patient/SetupProfile';
+import PatientSettings from './pages/patient/Settings';
 
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import ManageAdmins from './pages/superadmin/ManageAdmins';
@@ -36,6 +37,12 @@ import VerifyAdmin from './pages/superadmin/VerifyAdmin';
 import AdminProfile from './pages/admin/AdminProfile';
 import SuperAdminProfile from './pages/superadmin/SuperAdminProfile';
 import SuperAdminReports from './pages/superadmin/SuperAdminReports';
+
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorAppointments from './pages/doctor/DoctorAppointments';
+import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorSettings from './pages/doctor/DoctorSettings';
+import DoctorHealthRecords from './pages/doctor/DoctorHealthRecords';
 
 function App() {
   return (
@@ -69,6 +76,14 @@ function App() {
           <Route path="/patient/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/patient/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
           <Route path="/patient/setup-profile" element={<ProtectedRoute><SetupProfile /></ProtectedRoute>} />
+          <Route path="/patient/settings" element={<ProtectedRoute><PatientSettings /></ProtectedRoute>} />
+
+          {/* Doctor */}
+          <Route path="/doctor" element={<ProtectedRoute doctorOnly><DoctorDashboard /></ProtectedRoute>} />
+          <Route path="/doctor/appointments" element={<ProtectedRoute doctorOnly><DoctorAppointments /></ProtectedRoute>} />
+          <Route path="/doctor/health-records" element={<ProtectedRoute doctorOnly><DoctorHealthRecords /></ProtectedRoute>} />
+          <Route path="/doctor/profile" element={<ProtectedRoute doctorOnly><DoctorProfile /></ProtectedRoute>} />
+          <Route path="/doctor/settings" element={<ProtectedRoute doctorOnly><DoctorSettings /></ProtectedRoute>} />
 
           {/* Superadmin */}
           <Route path="/superadmin" element={<ProtectedRoute superAdminOnly><SuperAdminDashboard /></ProtectedRoute>} />

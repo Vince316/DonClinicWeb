@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import PatientSidebar from '../../components/patient/PatientSidebar';
 import PatientNavbar from '../../components/patient/PatientNavbar';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
 
 const TIME_SLOTS = [
   '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
@@ -25,7 +26,7 @@ const statusStyle = (status) => {
   if (status === 'Confirmed') return 'bg-green-100 text-green-700';
   if (status === 'Pending') return 'bg-yellow-100 text-yellow-700';
   if (status === 'Cancelled') return 'bg-red-100 text-red-700';
-  if (status === 'Completed') return 'bg-blue-100 text-blue-700';
+  if (status === 'Completed') return 'bg-steelblue-100 text-steelblue-600';
   return 'bg-gray-100 text-gray-700';
 };
 
@@ -37,6 +38,9 @@ const PatientAppointments = () => {
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 8;
 
   const fetchAppointments = async () => {
     if (!user?.uid) return;
@@ -114,9 +118,9 @@ const PatientAppointments = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {appointments.map(a => (
+                    {appointments.slice((page - 1) * PER_PAGE, page * PER_PAGE).map(a => (
                       <tr key={a.id} onClick={() => openDetail(a)}
-                        className="hover:bg-sky-50 cursor-pointer transition-colors">
+                        className="hover:bg-steelblue-50 cursor-pointer transition-colors">
                         <td className="px-5 py-4 text-sm font-medium text-gray-900">{a.doctorName}</td>
                         <td className="px-5 py-4 text-sm text-gray-600">{a.specialty || '—'}</td>
                         <td className="px-5 py-4 text-sm text-gray-600">{a.date}</td>
@@ -129,6 +133,9 @@ const PatientAppointments = () => {
                     ))}
                   </tbody>
                 </table>
+                <div className="px-6 pb-4">
+                  <Pagination page={page} total={appointments.length} perPage={PER_PAGE} onChange={setPage} />
+                </div>
               </div>
             )}
           </div>
@@ -159,7 +166,7 @@ const PatientAppointments = () => {
                   <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
                   <input type="date" min={today} value={editData.date}
                     onChange={e => setEditData({ ...editData, date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 outline-none" />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-steelblue-400 outline-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Time Slot</label>
@@ -167,7 +174,7 @@ const PatientAppointments = () => {
                     {TIME_SLOTS.map(slot => (
                       <button key={slot} onClick={() => setEditData({ ...editData, time: slot })}
                         className={`py-1.5 text-xs rounded-lg border-2 font-medium transition-colors
-                          ${editData.time === slot ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 hover:border-sky-300 text-gray-600'}`}>
+                          ${editData.time === slot ? 'border-steelblue-500 bg-steelblue-50 text-steelblue-600' : 'border-gray-200 hover:border-steelblue-300 text-gray-600'}`}>
                         {slot}
                       </button>
                     ))}
@@ -179,7 +186,7 @@ const PatientAppointments = () => {
                     {(SERVICES[selected?.specialty] || []).map(s => (
                       <button key={s} onClick={() => setEditData({ ...editData, service: s })}
                         className={`p-2 text-xs rounded-lg border-2 font-medium text-left transition-colors
-                          ${editData.service === s ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 hover:border-sky-300 text-gray-600'}`}>
+                          ${editData.service === s ? 'border-steelblue-500 bg-steelblue-50 text-steelblue-600' : 'border-gray-200 hover:border-steelblue-300 text-gray-600'}`}>
                         {s}
                       </button>
                     ))}
@@ -188,7 +195,7 @@ const PatientAppointments = () => {
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
                   <textarea value={editData.notes} onChange={e => setEditData({ ...editData, notes: e.target.value })}
-                    rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 outline-none resize-none" />
+                    rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-steelblue-400 outline-none resize-none" />
                 </div>
                 <div className="flex gap-2 pt-1">
                   <Button variant="outline" onClick={() => setEditing(false)} className="w-full">Cancel</Button>

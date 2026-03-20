@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false, doctorOnly = false }) => {
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
@@ -17,9 +17,11 @@ const ProtectedRoute = ({ children, adminOnly = false, superAdminOnly = false })
 
   if (superAdminOnly && user?.role !== 'superadmin') return <Navigate to="/" replace />;
 
-  if (adminOnly && user?.role !== 'admin' && user?.role !== 'doctor' && user?.role !== 'superadmin') {
+  if (adminOnly && user?.role !== 'admin' && user?.role !== 'superadmin') {
     return <Navigate to="/" replace />;
   }
+
+  if (doctorOnly && user?.role !== 'doctor') return <Navigate to="/" replace />;
 
   // Only redirect to setup if newly registered flag is set
   const isNewlyRegistered = sessionStorage.getItem('newlyRegistered') === '1';
