@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 const SuperAdminSidebar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [dropOpen, setDropOpen] = useState(false);
   const dropRef = useRef();
 
@@ -42,11 +41,11 @@ const SuperAdminSidebar = () => {
 
   return (
     <aside className="w-64 bg-white min-h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col">
-      <div className="px-6 h-[60px] flex items-center border-b border-gray-200">
+      <div className="px-6 h-[72px] flex items-center border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold">SA</div>
           <div>
-            <h2 className="font-semibold text-gray-900">DonClinic</h2>
+            <h2 className="font-semibold text-gray-900"></h2>
             <p className="text-xs text-gray-500">Super Admin</p>
           </div>
         </div>

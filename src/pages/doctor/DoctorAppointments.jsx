@@ -9,6 +9,7 @@ const STATUS_STYLE = {
   Confirmed: 'bg-steelblue-100 text-steelblue-600',
   Completed: 'bg-green-100 text-green-700',
   Cancelled: 'bg-red-100 text-red-700',
+  'No-Show': 'bg-orange-100 text-orange-700',
 };
 
 const TABS = ['Upcoming', 'Completed', 'Cancelled'];
@@ -20,6 +21,8 @@ const DoctorAppointments = () => {
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [showCancel, setShowCancel] = useState(false);
 
   const [page, setPage] = useState(1);
   const PER_PAGE = 8;
@@ -33,12 +36,12 @@ const DoctorAppointments = () => {
   const filtered = appointments.filter(a => {
     if (tab === 'Upcoming') return a.status === 'Confirmed';
     if (tab === 'Completed') return a.status === 'Completed';
-    if (tab === 'Cancelled') return a.status === 'Cancelled';
+    if (tab === 'Cancelled') return a.status === 'Cancelled' || a.status === 'No-Show';
     return true;
   });
 
-  const openModal = (appt) => { setSelected(appt); setNotes(appt.consultationNotes || ''); };
-  const closeModal = () => { setSelected(null); setNotes(''); };
+  const openModal = (appt) => { setSelected(appt); setNotes(appt.consultationNotes || ''); setCancelReason(''); setShowCancel(false); };
+  const closeModal = () => { setSelected(null); setNotes(''); setCancelReason(''); setShowCancel(false); };
 
   const handleComplete = async () => {
     if (!notes.trim()) return alert('Please add consultation notes before completing.');
@@ -46,6 +49,17 @@ const DoctorAppointments = () => {
     await updateDoc(doc(db, 'appointments', selected.id), {
       status: 'Completed',
       consultationNotes: notes.trim(),
+    });
+    setSaving(false);
+    closeModal();
+  };
+
+  const handleCancel = async (status) => {
+    if (!cancelReason.trim()) return alert('Please provide a reason.');
+    setSaving(true);
+    await updateDoc(doc(db, 'appointments', selected.id), {
+      status,
+      cancelReason: cancelReason.trim(),
     });
     setSaving(false);
     closeModal();
@@ -66,7 +80,7 @@ const DoctorAppointments = () => {
       <div className="flex-1 ml-64">
         <DoctorNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-6xl mx-auto space-y-5">
+          <div className="max-w-6xl mx-auto space-y-5 animate-fade-up">
             <h1 className="text-2xl font-bold text-gray-900">My Appointments</h1>
 
             {/* Tabs */}
@@ -133,8 +147,8 @@ const DoctorAppointments = () => {
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl animate-scale-in">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-900">Appointment Details</h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
@@ -196,15 +210,48 @@ const DoctorAppointments = () => {
             </div>
 
             {selected.status === 'Confirmed' && (
-              <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0 flex gap-3">
-                <button onClick={handleSaveNotes} disabled={saving}
-                  className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
-                  {saving ? 'Saving...' : 'Save Notes'}
-                </button>
-                <button onClick={handleComplete} disabled={saving}
-                  className="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50">
-                  {saving ? 'Saving...' : 'Mark as Completed'}
-                </button>
+              <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0 space-y-3">
+                {showCancel ? (
+                  <div className="space-y-2">
+                    <select value={cancelReason} onChange={e => setCancelReason(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-steelblue-400">
+                      <option value="">Select reason...</option>
+                      <option>Patient did not show up</option>
+                      <option>Doctor unavailable</option>
+                      <option>Patient requested cancellation</option>
+                      <option>Other</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowCancel(false)}
+                        className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
+                        Back
+                      </button>
+                      <button onClick={() => handleCancel('Cancelled')} disabled={saving || !cancelReason}
+                        className="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50">
+                        {saving ? 'Saving...' : 'Confirm Cancel'}
+                      </button>
+                      <button onClick={() => handleCancel('No-Show')} disabled={saving || !cancelReason}
+                        className="flex-1 py-2 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors disabled:opacity-50">
+                        {saving ? 'Saving...' : 'No-Show'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowCancel(true)}
+                      className="flex-1 py-2 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors">
+                      Cancel / No-Show
+                    </button>
+                    <button onClick={handleSaveNotes} disabled={saving}
+                      className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
+                      {saving ? 'Saving...' : 'Save Notes'}
+                    </button>
+                    <button onClick={handleComplete} disabled={saving || !notes.trim()}
+                      className="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      {saving ? 'Saving...' : 'Mark Completed'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

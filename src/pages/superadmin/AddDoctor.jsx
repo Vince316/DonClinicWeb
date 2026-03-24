@@ -24,7 +24,7 @@ const AddDoctor = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', specialty: '', licenseNumber: '', yearsOfExperience: '', education: '', password: '', confirmPassword: '' });
 
-  const specialties = ['Cardiologist', 'Dermatologist', 'Pediatrician', 'Orthopedic', 'Neurologist', 'General Practitioner', 'Ophthalmologist', 'Psychiatrist'];
+  const specialties = ['Cardiology', 'Dermatology', 'Neurology', 'Ophthalmology', 'Psychiatry', 'Dentistry'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();

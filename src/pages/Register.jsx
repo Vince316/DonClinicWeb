@@ -26,6 +26,7 @@ const Register = () => {
   const [timer, setTimer] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -40,6 +41,19 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+    if (name === 'email') setEmailExists(false);
+  };
+
+  const checkEmailExists = async (email) => {
+    if (!email) return false;
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length > 0) { setEmailExists(true); return true; }
+      const q = query(collection(db, 'patients'), where('email', '==', email));
+      const snap = await getDocs(q);
+      if (!snap.empty) { setEmailExists(true); return true; }
+    } catch {}
+    return false;
   };
 
   const sendVerificationCode = async () => {
@@ -47,9 +61,9 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, formData.email);
-      if (methods.length > 0) {
-        setError('This email is already registered. Please sign in instead.');
+      const exists = await checkEmailExists(formData.email);
+      if (exists) {
+        setError('This email is already registered. Please use another email.');
         setLoading(false);
         return;
       }
@@ -170,15 +184,16 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
-      <Link
-        to="/"
-        className="fixed top-4 left-4 p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-50 text-4xl font-black leading-none"
-      >
-        ←
-      </Link>
       <Card className="w-full max-w-md p-8">
+        <Link to="/" className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm font-medium mb-6 transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back
+        </Link>
 
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600">Step {step} of 2</p>
         </div>
@@ -199,18 +214,22 @@ const Register = () => {
               <div className="flex gap-2">
                 <input
                   type="email" name="email" value={formData.email} onChange={handleChange}
+                  onBlur={() => checkEmailExists(formData.email)}
                   placeholder="Email Address"
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
+                  className={`flex-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none ${emailExists ? 'border-red-400' : 'border-gray-300'}`}
                   required
                 />
                 <button
                   type="button" onClick={sendVerificationCode}
-                  disabled={loading || (codeSent && timer > 0)}
+                  disabled={loading || (codeSent && timer > 0) || emailExists}
                   className="px-4 py-2.5 bg-steelblue-500 text-white rounded-lg hover:bg-steelblue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
                 >
                   {loading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send Code'}
                 </button>
               </div>
+              {emailExists && (
+                <p className="text-xs text-red-500 mt-1">This email is already registered. <Link to="/signin" className="underline font-medium">Sign in instead?</Link></p>
+              )}
             </div>
 
             {codeSentMsg && (
@@ -220,6 +239,8 @@ const Register = () => {
             {codeSent && (
               <Input label="Verification Code" name="verificationCode" value={formData.verificationCode} onChange={handleChange} placeholder="Enter 6-digit code" maxLength={6} required />
             )}
+
+            <Button onClick={handleNext} className="w-full">Next</Button>
 
             <div className="mt-6">
               <div className="relative">
@@ -241,8 +262,6 @@ const Register = () => {
                 </button>
               </div>
             </div>
-
-            <Button onClick={handleNext} className="w-full">Next</Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -252,13 +271,32 @@ const Register = () => {
                 <input
                   type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange}
                   placeholder="Enter Password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none ${
+                    formData.password && formData.password.length < 8 ? 'border-red-400' : 'border-gray-300'
+                  }`}
                   required
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
                   <EyeIcon show={showPassword} />
                 </button>
               </div>
+              {formData.password && (
+                <ul className="mt-2 space-y-1">
+                  {[
+                    ['At least 8 characters', formData.password.length >= 8],
+                    ['At least one number', /[0-9]/.test(formData.password)],
+                    ['At least one special character', /[^A-Za-z0-9]/.test(formData.password)],
+                  ].map(([label, passed]) => (
+                    <li key={label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-green-600' : 'text-red-500'}`}>
+                      {passed
+                        ? <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                        : <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      }
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div>

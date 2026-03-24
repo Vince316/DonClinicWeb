@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { db, collection, query, where, onSnapshot } from '../../lib/firebase';
 
@@ -6,6 +7,7 @@ const STORAGE_KEY = (uid) => `superadmin_notif_read_${uid}`;
 
 const SuperAdminNavbar = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [readIds, setReadIds] = useState(() => {
@@ -39,10 +41,23 @@ const SuperAdminNavbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-64 z-10 shadow-sm">
-      <div className="px-6 h-[60px] flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Super Admin Panel</h1>
-        <div className="relative" ref={ref}>
+    <nav className="bg-white fixed top-0 right-0 left-64 z-10">
+      <div className="px-6 h-[72px] flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-gray-900"></h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/superadmin/add-doctor')}
+            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Add Doctor
+          </button>
+          <button
+            onClick={() => navigate('/superadmin/add-admin')}
+            className="px-4 py-2 bg-steelblue-500 hover:bg-steelblue-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Add Admin
+          </button>
+          <div className="relative" ref={ref}>
           <button onClick={handleOpen} className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -55,7 +70,7 @@ const SuperAdminNavbar = () => {
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-down">
               <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">Notifications</div>
               {notifications.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-gray-400 text-center">No pending appointments</p>
@@ -72,6 +87,7 @@ const SuperAdminNavbar = () => {
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </nav>

@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { db, addDoc, collection, getDocs } from '../../lib/firebase';
+import emailjs from '@emailjs/browser';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminNavbar from '../../components/admin/AdminNavbar';
 import Button from '../../components/ui/Button';
 
 const TIME_SLOTS = [
-  '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
-  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-  '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-  '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM',
+  '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
 ];
 
 const SERVICES = {
@@ -87,6 +86,7 @@ const WalkInPatient = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const refNum = 'DC-' + Date.now().toString().slice(-8);
       await addDoc(collection(db, 'appointments'), {
         patientName: name,
         patientEmail: email,
@@ -100,8 +100,25 @@ const WalkInPatient = () => {
         notes: reason,
         status: 'Confirmed',
         walkIn: true,
+        referenceNumber: refNum,
         createdAt: new Date().toISOString(),
       });
+      if (email) {
+        await emailjs.send(
+          import.meta.env.VITE_EMAILJS_SERVICE_ID,
+          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+          {
+            to_name: name,
+            to_email: email,
+            appointment_date: date,
+            appointment_time: timeSlot,
+            doctor_name: selectedDoctor?.name || '',
+            service,
+            reference_number: refNum,
+          },
+          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        ).catch(err => console.error('Email failed:', err));
+      }
       setSuccess(true);
     } catch (err) {
       console.error(err);

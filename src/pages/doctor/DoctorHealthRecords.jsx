@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, collection, query, where, getDocs, addDoc } from '../../lib/firebase';
+import { db, collection, query, where, getDocs, addDoc, doc, getDoc } from '../../lib/firebase';
 import { storage, ref, uploadBytes, getDownloadURL } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import DoctorSidebar from '../../components/doctor/DoctorSidebar';
@@ -50,13 +50,17 @@ const DoctorHealthRecords = () => {
       const snap = await getDocs(query(collection(db, 'appointments'), where('doctorId', '==', user.uid)));
       const seen = new Set();
       const list = [];
-      snap.docs.forEach(d => {
+      for (const d of snap.docs) {
         const data = d.data();
-        if (data.patientId && !seen.has(data.patientId)) {
-          seen.add(data.patientId);
-          list.push({ id: data.patientId, name: data.patientName || 'Unknown' });
+        if (!data.patientId || seen.has(data.patientId)) continue;
+        seen.add(data.patientId);
+        let name = data.patientName;
+        if (!name) {
+          const patientDoc = await getDoc(doc(db, 'patients', data.patientId));
+          name = patientDoc.exists() ? patientDoc.data().name : 'Unknown';
         }
-      });
+        list.push({ id: data.patientId, name });
+      }
       setPatients(list);
     };
     fetchPatients();
@@ -138,7 +142,7 @@ const DoctorHealthRecords = () => {
       <div className="flex-1 ml-64">
         <DoctorNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-6xl mx-auto flex gap-6">
+          <div className="max-w-6xl mx-auto flex gap-6 animate-fade-up">
 
             {/* Patient List */}
             <div className="w-64 flex-shrink-0">
@@ -192,7 +196,7 @@ const DoctorHealthRecords = () => {
 
                   {/* Add Record Form */}
                   {showForm && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-fade-down">
                       <h3 className="text-sm font-semibold text-gray-700 mb-5">New Health Record</h3>
                       <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -379,8 +383,8 @@ const DoctorHealthRecords = () => {
                       <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                         <p className="text-sm text-gray-400">No {filterType !== 'All' ? filterType.toLowerCase() : ''} records found.</p>
                       </div>
-                    ) : visibleRecords.map(r => (
-                      <div key={r.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                    ) : visibleRecords.map((r, i) => (
+                      <div key={r.id} className="bg-white rounded-xl border border-gray-200 p-5 animate-fade-up" style={{ animationDelay: `${i * 50}ms` }}>
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor(r.type)}`}>{r.type}</span>

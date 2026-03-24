@@ -62,8 +62,8 @@ const DoctorNavbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-64 z-10">
-      <div className="px-6 h-[60px] flex items-center justify-between">
+    <nav className="bg-white fixed top-0 right-0 left-64 z-10">
+      <div className="px-6 h-[72px] flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
 
         <div className="relative" ref={dropRef}>
@@ -80,7 +80,7 @@ const DoctorNavbar = () => {
           </button>
 
           {open && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 animate-fade-down">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
                 {notifs.length > 0 && <span className="text-xs text-gray-400">{notifs.length} appointment{notifs.length !== 1 ? 's' : ''}</span>}

@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db, collection, query, where, onSnapshot } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import DoctorSidebar from '../../components/doctor/DoctorSidebar';
 import DoctorNavbar from '../../components/doctor/DoctorNavbar';
 
-const StatCard = ({ label, value, color }) => (
-  <div className={`bg-white rounded-xl border border-gray-200 p-5`}>
+const StatCard = ({ label, value, color, onClick }) => (
+  <button onClick={onClick} className="bg-white rounded-xl border border-gray-200 p-5 animate-fade-up hover:shadow-md hover:border-gray-300 transition-all text-left w-full">
     <p className="text-sm text-gray-500 mb-1">{label}</p>
     <p className={`text-3xl font-bold ${color}`}>{value}</p>
-  </div>
+  </button>
 );
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
@@ -32,16 +34,16 @@ const DoctorDashboard = () => {
       <div className="flex-1 ml-64">
         <DoctorNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6 animate-fade-up">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Welcome, Dr. {user?.name}</h2>
               <p className="text-gray-500 text-sm mt-1">Here's your schedule overview.</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <StatCard label="Today's Appointments" value={todayAppts.length} color="text-steelblue-500" />
-              <StatCard label="Upcoming" value={upcoming.length} color="text-amber-500" />
-              <StatCard label="Completed" value={completed.length} color="text-green-600" />
+            <div className="grid grid-cols-3 gap-4 stagger">
+              <StatCard label="Today's Appointments" value={todayAppts.length} color="text-steelblue-500" onClick={() => navigate('/doctor/appointments')} />
+              <StatCard label="Upcoming" value={upcoming.length} color="text-amber-500" onClick={() => navigate('/doctor/appointments')} />
+              <StatCard label="Completed" value={completed.length} color="text-green-600" onClick={() => navigate('/doctor/appointments')} />
             </div>
 
             {/* Today's Schedule */}

@@ -88,9 +88,6 @@ const SuperAdminReports = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {statCards.map(c => (
                 <div key={c.label} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${c.bg}`}>
-                    <span className={`text-lg font-bold ${c.color}`}>{c.value}</span>
-                  </div>
                   <p className={`text-2xl font-bold ${c.color}`}>{c.value}</p>
                   <p className="text-sm text-gray-600 font-medium mt-0.5">{c.label}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{c.sub}</p>

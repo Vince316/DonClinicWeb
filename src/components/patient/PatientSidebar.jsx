@@ -41,11 +41,11 @@ const PatientSidebar = () => {
   }, []);
 
   return (
-    <aside className="w-64 bg-white min-h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col">
-      <div className="px-6 h-[60px] flex items-center border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-steelblue-500 rounded-lg flex items-center justify-center text-white font-bold">DC</div>
-          <h2 className="font-semibold text-gray-900">DonClinic</h2>
+    <aside className="w-64 bg-white min-h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col animate-slide-left">
+      <div className="px-6 h-[72px] flex items-center border-b border-gray-200">
+        <div className="flex flex-col items-center w-full">
+          <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
+          <span className="text-xs font-medium text-gray-500 mt-1">Patient Portal</span>
         </div>
       </div>
 
@@ -66,7 +66,7 @@ const PatientSidebar = () => {
 
       <div className="p-4 border-t border-gray-200 relative" ref={dropRef}>
         {dropOpen && (
-          <div className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+          <div className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 animate-fade-up">
             <Link to="/patient/profile" onClick={() => setDropOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               Profile
@@ -94,7 +94,7 @@ const PatientSidebar = () => {
             <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'Patient'}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
-          <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${dropOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+          <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 ${dropOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
         </button>
       </div>
     </aside>

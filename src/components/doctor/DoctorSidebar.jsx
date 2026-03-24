@@ -1,12 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { db, doc, getDoc, setDoc } from '../../lib/firebase';
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const TIMES = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM'];
 
 const DoctorSidebar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropOpen, setDropOpen] = useState(false);
+  const [availOpen, setAvailOpen] = useState(false);
+  const [availDays, setAvailDays] = useState([]);
+  const [timeFrom, setTimeFrom] = useState('08:00 AM');
+  const [timeTo, setTimeTo] = useState('05:00 PM');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const dropRef = useRef();
 
   useEffect(() => {
@@ -14,6 +24,28 @@ const DoctorSidebar = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getDoc(doc(db, 'doctors', user.uid)).then(snap => {
+      if (snap.exists() && snap.data().availability) {
+        const av = snap.data().availability;
+        setAvailDays(av.days || []);
+        setTimeFrom(av.from || '08:00 AM');
+        setTimeTo(av.to || '05:00 PM');
+      }
+    });
+  }, [user?.uid]);
+
+  const toggleDay = (day) => setAvailDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+
+  const handleSaveAvailability = async () => {
+    setSaving(true);
+    await setDoc(doc(db, 'doctors', user.uid), { availability: { days: availDays, from: timeFrom, to: timeTo } }, { merge: true });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const handleLogout = () => { logout(); navigate('/'); };
 
@@ -36,14 +68,11 @@ const DoctorSidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-white min-h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col">
-      <div className="px-6 h-[60px] flex items-center border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-steelblue-500 rounded-lg flex items-center justify-center text-white font-bold">DC</div>
-          <div>
-            <h2 className="font-semibold text-gray-900">DonClinic</h2>
-            <p className="text-xs text-gray-500">Doctor Portal</p>
-          </div>
+    <aside className="w-64 bg-white min-h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col animate-slide-left overflow-y-auto">
+      <div className="px-6 h-[72px] flex items-center justify-center border-b border-gray-200">
+        <div className="flex flex-col items-center">
+          <img src="/kapoya.jpg" alt="DonClinic" className="h-10 w-auto" />
+          <p className="text-xs text-gray-500 mt-1">Doctor Portal</p>
         </div>
       </div>
 
@@ -57,9 +86,57 @@ const DoctorSidebar = () => {
         ))}
       </nav>
 
+      {/* Availability */}
+      <div className="px-4 pb-2">
+        <button onClick={() => setAvailOpen(o => !o)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-steelblue-50 hover:bg-steelblue-100 transition-colors">
+          <div className="flex items-center gap-2 text-steelblue-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <span className="text-sm font-medium">My Availability</span>
+          </div>
+          <svg className={`w-4 h-4 text-steelblue-400 transition-transform duration-200 ${availOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+
+        {availOpen && (
+          <div className="mt-2 p-3 bg-white border border-gray-200 rounded-xl space-y-3 animate-fade-down">
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">Available Days</p>
+              <div className="flex flex-wrap gap-1">
+                {DAYS.map(day => (
+                  <button key={day} onClick={() => toggleDay(day)}
+                    className={`px-2.5 py-1 text-xs rounded-lg font-medium border transition-colors ${
+                      availDays.includes(day) ? 'bg-steelblue-500 text-white border-steelblue-500' : 'border-gray-200 text-gray-600 hover:border-steelblue-300'
+                    }`}>{day}</button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">From</p>
+                <select value={timeFrom} onChange={e => setTimeFrom(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-steelblue-400">
+                  {TIMES.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">To</p>
+                <select value={timeTo} onChange={e => setTimeTo(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-steelblue-400">
+                  {TIMES.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+            <button onClick={handleSaveAvailability} disabled={saving}
+              className="w-full py-1.5 bg-steelblue-500 hover:bg-steelblue-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50">
+              {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save Availability'}
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="p-4 border-t border-gray-200 relative" ref={dropRef}>
         {dropOpen && (
-          <div className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+          <div className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 animate-fade-up">
             <Link to="/doctor/profile" onClick={() => setDropOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               Profile
@@ -85,7 +162,7 @@ const DoctorSidebar = () => {
             <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'Doctor'}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
-          <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${dropOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+          <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 ${dropOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
         </button>
       </div>
     </aside>

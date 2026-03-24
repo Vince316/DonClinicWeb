@@ -150,8 +150,8 @@ const Hero = () => {
   return (
     <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
-          <div className="space-y-4 sm:space-y-6 text-center md:text-left">
+        <div className="grid md:grid-cols-2 gap-16 sm:gap-24 items-center">
+          <div className="space-y-4 sm:space-y-6 text-center md:text-left animate-slide-left">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
               Your Health, Our Priority
             </h1>
@@ -163,33 +163,24 @@ const Hero = () => {
               <Link to="/register"><Button variant="primary" size="lg" className="w-full sm:w-auto">Get Started</Button></Link>
               <Link to="/about"><Button variant="outline" size="lg" className="w-full sm:w-auto">Learn More</Button></Link>
             </div>
-            <div className="flex gap-6 sm:gap-8 pt-6 sm:pt-8 justify-center md:justify-start">
-              <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">10K+</div>
-                <div className="text-sm sm:text-base text-gray-600">Patients</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">50+</div>
-                <div className="text-sm sm:text-base text-gray-600">Doctors</div>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">98%</div>
-                <div className="text-sm sm:text-base text-gray-600">Satisfaction</div>
-              </div>
-            </div>
+
           </div>
 
-          <div className="relative mt-8 md:mt-0">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-8">
+          <div className="relative mt-8 md:mt-0 animate-slide-right flex justify-end">
+            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-8 w-full max-w-[500px]">
 
               {activeTab === 'signin' ? (
                 <div className="space-y-4">
+                  <div className="mb-4 text-center">
+                    <h2 className="text-xl font-bold text-gray-800">Welcome to DonClinic! </h2>
+                    <p className="text-sm text-gray-500 mt-1">Login to your account to continue.</p>
+                  </div>
                   {signInError && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">{signInError}</div>}
 
                   <form onSubmit={handleSignIn} className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input type="email" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="Enter email address" required />
+                      <input type="email" value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-steelblue-400 focus:border-transparent outline-none" placeholder="john@gmail.com" required />
                     </div>
 
                     <div>
@@ -202,21 +193,19 @@ const Hero = () => {
                       </div>
                     </div>
 
+                    <div className="text-right">
+                      <Link to="/forgot-password" className="text-sm text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Forgot Password?</Link>
+                    </div>
+
                     <Button type="submit" variant="primary" className="w-full" disabled={signInLoading}>
                       {signInLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </form>
 
-                  <div className="text-center">
-                    <Link to="/forgot-password" className="text-sm text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Forgot Password?</Link>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-                    <Link to="/register">
-                      <button type="button" className="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors">
-                        Create New Account
-                      </button>
-                    </Link>
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                    <p className="text-sm text-gray-600">Didn't have an account?{' '}
+                      <Link to="/register" className="text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Sign up</Link>
+                    </p>
                   </div>
 
                   <div className="relative my-4">
@@ -263,6 +252,8 @@ const Hero = () => {
                         </div>
                       )}
 
+                      <Button onClick={handleNext} className="w-full mt-4">Next</Button>
+
                       <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300"></div></div>
                         <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
@@ -272,8 +263,6 @@ const Hero = () => {
                         <GoogleIcon />
                         <span className="text-sm font-medium text-gray-700">Sign in with Google</span>
                       </button>
-
-                      <Button onClick={handleNext} className="w-full mt-4">Next</Button>
                     </>
                   ) : (
                     <form onSubmit={handleRegister} className="space-y-3">

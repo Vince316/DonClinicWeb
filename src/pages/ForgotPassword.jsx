@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import emailjs from '@emailjs/browser';
-import { auth } from '../lib/firebase';
-import { fetchSignInMethodsForEmail } from 'firebase/auth';
+import { auth, db, collection, query, where, getDocs } from '../lib/firebase';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
@@ -18,23 +16,19 @@ const ForgotPassword = () => {
     setError('');
     setLoading(true);
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length === 0) {
+      // Check across all Firestore collections that store emails
+      const collections = ['patients', 'admins', 'doctors'];
+      let found = false;
+      for (const col of collections) {
+        const snap = await getDocs(query(collection(db, col), where('email', '==', email)));
+        if (!snap.empty) { found = true; break; }
+      }
+      if (!found) {
         setError('No account found with that email address.');
         setLoading(false);
         return;
       }
       await sendPasswordResetEmail(auth, email);
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_RESET_TEMPLATE_ID,
-        {
-          to_email: email,
-          to_name: email.split('@')[0],
-          reset_link: `https://donclinicweb-7e999.firebaseapp.com/__/auth/action?mode=resetPassword`,
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
       setSent(true);
     } catch (err) {
       setError('Failed to send reset email. Please try again.');
@@ -44,15 +38,15 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
-      <Link
-        to="/signin"
-        className="fixed top-4 left-4 p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-50 text-4xl font-black leading-none"
-      >
-        ←
-      </Link>
-
       <Card className="w-full max-w-md p-8">
+        <Link to="/" className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm font-medium mb-6 transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back
+        </Link>
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
+          </div>
           <div className="w-16 h-16 bg-steelblue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-steelblue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />

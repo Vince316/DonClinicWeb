@@ -38,9 +38,13 @@ const PatientAppointments = () => {
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
-
+  const [tab, setTab] = useState('All');
   const [page, setPage] = useState(1);
   const PER_PAGE = 8;
+
+  const TABS = ['All', 'Confirmed', 'Pending', 'Completed', 'Cancelled'];
+  const filtered = tab === 'All' ? appointments : appointments.filter(a => a.status === tab);
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—';
 
   const fetchAppointments = async () => {
     if (!user?.uid) return;
@@ -100,30 +104,45 @@ const PatientAppointments = () => {
       <div className="flex-1 ml-64">
         <PatientNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-5xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">My Appointments</h1>
+          <div className="max-w-5xl mx-auto animate-fade-up">
+
+            {/* Tab Filter */}
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {TABS.map(t => (
+                <button key={t} onClick={() => { setTab(t); setPage(1); }}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                    tab === t ? 'bg-steelblue-500 text-white border-steelblue-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  {t}
+                  <span className="ml-1.5 text-xs opacity-70">
+                    {t === 'All' ? appointments.length : appointments.filter(a => a.status === t).length}
+                  </span>
+                </button>
+              ))}
+            </div>
 
             {loading ? (
               <div className="text-center py-12 text-gray-400">Loading...</div>
-            ) : appointments.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <div className="bg-white p-12 rounded-xl border border-gray-200 text-center text-gray-500">No appointments found.</div>
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      {['Doctor', 'Specialty', 'Date', 'Time', 'Service', 'Status'].map(h => (
+                      {['Ref #', 'Doctor', 'Specialty', 'Date', 'Time', 'Service', 'Status'].map(h => (
                         <th key={h} className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {appointments.slice((page - 1) * PER_PAGE, page * PER_PAGE).map(a => (
+                    {filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE).map(a => (
                       <tr key={a.id} onClick={() => openDetail(a)}
                         className="hover:bg-steelblue-50 cursor-pointer transition-colors">
-                        <td className="px-5 py-4 text-sm font-medium text-gray-900">{a.doctorName}</td>
+                        <td className="px-5 py-4 text-sm font-mono text-gray-500">{a.referenceNumber || '—'}</td>
+                        <td className="px-5 py-4 text-sm font-medium text-gray-800">{a.doctorName}</td>
                         <td className="px-5 py-4 text-sm text-gray-600">{a.specialty || '—'}</td>
-                        <td className="px-5 py-4 text-sm text-gray-600">{a.date}</td>
+                        <td className="px-5 py-4 text-sm text-gray-600">{formatDate(a.date)}</td>
                         <td className="px-5 py-4 text-sm text-gray-600">{a.time}</td>
                         <td className="px-5 py-4 text-sm text-gray-600">{a.service || '—'}</td>
                         <td className="px-5 py-4">
@@ -134,7 +153,7 @@ const PatientAppointments = () => {
                   </tbody>
                 </table>
                 <div className="px-6 pb-4">
-                  <Pagination page={page} total={appointments.length} perPage={PER_PAGE} onChange={setPage} />
+                  <Pagination page={page} total={filtered.length} perPage={PER_PAGE} onChange={setPage} />
                 </div>
               </div>
             )}
@@ -144,8 +163,8 @@ const PatientAppointments = () => {
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={closeModal}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={closeModal}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-900">Appointment Details</h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
@@ -206,6 +225,7 @@ const PatientAppointments = () => {
               <>
                 <div className="space-y-3 text-sm mb-5">
                   {[
+                    ['Reference #', selected.referenceNumber || '—'],
                     ['Doctor', selected.doctorName],
                     ['Specialty', selected.specialty || '—'],
                     ['Date', selected.date],

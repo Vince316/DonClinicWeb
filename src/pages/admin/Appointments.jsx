@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db, collection, getDocs, updateDoc, doc, onSnapshot } from '../../lib/firebase';
+import emailjs from '@emailjs/browser';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminNavbar from '../../components/admin/AdminNavbar';
 import Pagination from '../../components/ui/Pagination';
@@ -9,6 +10,7 @@ const STATUS_STYLE = {
   Confirmed: 'bg-steelblue-100 text-steelblue-600',
   Completed: 'bg-green-100 text-green-700',
   Cancelled: 'bg-red-100 text-red-700',
+  'No-Show': 'bg-orange-100 text-orange-700',
 };
 
 const COLS = ['Patient', 'Specialty', 'Service', 'Date', 'Time', 'Type', 'Status'];
@@ -56,13 +58,6 @@ const AppointmentTable = ({ rows, onRowClick, emptyMsg, page, onPageChange }) =>
     )
 );
 
-const SectionHeader = ({ title, count, color }) => (
-  <div className="flex items-center gap-3 mb-3">
-    <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${color}`}>{count}</span>
-  </div>
-);
-
 const SPECIALTY_MAP = {
   Cardiology: 'Cardiologist',
   Dermatology: 'Dermatologist',
@@ -72,18 +67,16 @@ const SPECIALTY_MAP = {
   Dentistry: 'Dentist',
 };
 
-const TIME_SLOTS = [
-  '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
-  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-  '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-  '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM',
-];
+const AM_SLOTS = ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM'];
+const PM_SLOTS = ['01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+const ALL_SLOTS = [...AM_SLOTS, ...PM_SLOTS];
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [selected, setSelected] = useState(null);
   const [doctorId, setDoctorId] = useState('');
+  const [assignedTime, setAssignedTime] = useState('');
   const [suggestedTime, setSuggestedTime] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [showCancel, setShowCancel] = useState(false);
@@ -92,6 +85,7 @@ const Appointments = () => {
   const [pageReq, setPageReq] = useState(1);
   const [pageUp, setPageUp] = useState(1);
   const [pageHist, setPageHist] = useState(1);
+  const [tab, setTab] = useState('Requests');
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'appointments'), snap => {
@@ -116,17 +110,10 @@ const Appointments = () => {
     return unsub;
   }, []);
 
-  const bookedDoctorIds = selected
-    ? new Set(
-        appointments
-          .filter(a => a.id !== selected.id && a.date === selected.date && a.time === selected.time && a.status === 'Confirmed' && a.doctorId)
-          .map(a => a.doctorId)
-      )
-    : new Set();
-
   const openModal = (appt) => {
     setSelected(appt);
     setDoctorId(appt.doctorId || '');
+    setAssignedTime(appt.status === 'Pending' ? '' : appt.time || '');
     setSuggestedTime(null);
     setCancelReason('');
     setShowCancel(false);
@@ -135,28 +122,48 @@ const Appointments = () => {
   const closeModal = () => { setSelected(null); setShowCancel(false); setSuggestedTime(null); };
 
   const handleApprove = async () => {
-    if (!doctorId) return alert('Please assign a doctor before approving.');
+    if (!assignedTime) return alert('Please assign a time slot before approving.');
     setSaving(true);
-    const doctor = doctors.find(d => d.id === doctorId);
+    const doctor = doctors.find(d => d.id === selected.doctorId);
     await updateDoc(doc(db, 'appointments', selected.id), {
       status: 'Confirmed',
-      doctorId,
-      doctorName: doctor?.name || '',
-      ...(suggestedTime ? { time: suggestedTime } : {}),
+      doctorId: selected.doctorId,
+      doctorName: doctor?.name || selected.doctorName || '',
+      time: assignedTime,
     });
+    if (selected.patientEmail) {
+      emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_APPOINTMENT_TEMPLATE_ID,
+        {
+          to_name: selected.patientName || 'Patient',
+          to_email: selected.patientEmail,
+          reference_number: selected.referenceNumber || '—',
+          doctor_name: doctor?.name || selected.doctorName || '',
+          specialty: selected.specialty || '',
+          service: selected.service || '',
+          appointment_date: selected.date,
+          appointment_time: assignedTime,
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      ).catch(err => console.error('Email failed:', err));
+    }
     setSaving(false);
     closeModal();
   };
 
-  const getSuggestedSlot = (docId) => {
-    if (!selected) return null;
+  const getAvailableSlots = (docId) => {
+    if (!selected) return [];
+    const preferredSlots = selected.time === 'PM' ? PM_SLOTS : selected.time === 'AM' ? AM_SLOTS : ALL_SLOTS;
     const bookedTimes = new Set(
       appointments
         .filter(a => a.id !== selected.id && a.doctorId === docId && a.date === selected.date && a.status === 'Confirmed')
         .map(a => a.time)
     );
-    return TIME_SLOTS.find(t => t !== selected.time && !bookedTimes.has(t)) || null;
+    return preferredSlots.filter(t => !bookedTimes.has(t));
   };
+
+  const availableSlots = selected ? getAvailableSlots(selected.doctorId) : [];
 
   const handleCancel = async () => {
     if (!cancelReason.trim()) return alert('Please provide a cancellation reason.');
@@ -171,9 +178,16 @@ const Appointments = () => {
 
   const sortDesc = (arr) => [...arr].sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
-  const requests  = sortDesc(appointments.filter(a => a.status === 'Pending'));
-  const upcoming  = sortDesc(appointments.filter(a => a.status === 'Confirmed'));
-  const history   = sortDesc(appointments.filter(a => a.status === 'Completed' || a.status === 'Cancelled'));
+  const requests = sortDesc(appointments.filter(a => a.status === 'Pending'));
+  const upcoming = sortDesc(appointments.filter(a => a.status === 'Confirmed'));
+  const history  = sortDesc(appointments.filter(a => a.status === 'Completed' || a.status === 'Cancelled' || a.status === 'No-Show'));
+
+  const TABS = [
+    { key: 'Requests', label: 'Requests', rows: requests, color: 'bg-yellow-100 text-yellow-700', emptyMsg: 'No pending requests.', page: pageReq, setPage: setPageReq },
+    { key: 'Upcoming', label: 'Upcoming', rows: upcoming, color: 'bg-steelblue-100 text-steelblue-600', emptyMsg: 'No upcoming appointments.', page: pageUp, setPage: setPageUp },
+    { key: 'History',  label: 'History',  rows: history,  color: 'bg-gray-100 text-gray-600',          emptyMsg: 'No appointment history.',   page: pageHist, setPage: setPageHist },
+  ];
+  const active = TABS.find(t => t.key === tab);
 
   return (
     <div className="flex">
@@ -181,38 +195,39 @@ const Appointments = () => {
       <div className="flex-1 ml-64">
         <AdminNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto space-y-8">
+          <div className="max-w-7xl mx-auto space-y-5 animate-fade-up">
             <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
 
-            {/* Appointment Requests */}
-            <section>
-              <SectionHeader title="Appointment Requests" count={requests.length} color="bg-yellow-100 text-yellow-700" />
-              <AppointmentTable rows={requests} onRowClick={openModal} emptyMsg="No pending requests." page={pageReq} onPageChange={setPageReq} />
-            </section>
+            {/* Filter Tabs */}
+            <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit">
+              {TABS.map(t => (
+                <button key={t.key} onClick={() => { setTab(t.key); t.setPage(1); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    tab === t.key ? 'bg-steelblue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  {t.label}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                    tab === t.key ? 'bg-steelblue-400 text-white' : t.color
+                  }`}>{t.rows.length}</span>
+                </button>
+              ))}
+            </div>
 
-            <div className="border-t border-gray-200" />
-
-            {/* Upcoming */}
-            <section>
-              <SectionHeader title="Upcoming Appointments" count={upcoming.length} color="bg-steelblue-100 text-steelblue-600" />
-              <AppointmentTable rows={upcoming} onRowClick={openModal} emptyMsg="No upcoming appointments." page={pageUp} onPageChange={setPageUp} />
-            </section>
-
-            <div className="border-t border-gray-200" />
-
-            {/* History */}
-            <section>
-              <SectionHeader title="History" count={history.length} color="bg-gray-100 text-gray-600" />
-              <AppointmentTable rows={history} onRowClick={openModal} emptyMsg="No appointment history." page={pageHist} onPageChange={setPageHist} />
-            </section>
+            <AppointmentTable
+              rows={active.rows}
+              onRowClick={openModal}
+              emptyMsg={active.emptyMsg}
+              page={active.page}
+              onPageChange={active.setPage}
+            />
           </div>
         </main>
       </div>
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl animate-scale-in">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-900">Appointment Details</h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
@@ -263,53 +278,38 @@ const Appointments = () => {
               )}
 
               {(selected.status === 'Pending' || selected.status === 'Confirmed') && (
-                <div className="space-y-2">
-                  <label className="block text-xs font-medium text-gray-600">Assign Doctor</label>
+                <div className="space-y-3">
                   <div className="space-y-2">
-                    {doctors.filter(d => !d.specialty || d.specialty === SPECIALTY_MAP[selected.specialty] || d.specialty === selected.specialty).map(d => {
-                      const busy = bookedDoctorIds.has(d.id);
-                      const suggestion = busy ? getSuggestedSlot(d.id) : null;
-                      const isSelected = doctorId === d.id;
-                      return (
-                        <div key={d.id}
-                          onClick={() => { if (!busy) { setDoctorId(d.id); setSuggestedTime(null); } }}
-                          className={`rounded-lg border px-3 py-2.5 text-sm transition-colors
-                            ${busy ? 'border-gray-200 bg-gray-50 cursor-default' : isSelected ? 'border-steelblue-500 bg-steelblue-50 cursor-pointer' : 'border-gray-200 hover:border-steelblue-300 cursor-pointer'}`}>
-                          <div className="flex items-center justify-between">
-                            <span className={`font-medium ${busy ? 'text-gray-400' : 'text-gray-800'}`}>
-                              Dr. {d.name}{d.specialty ? ` · ${d.specialty}` : ''}
-                            </span>
-                            {busy
-                              ? <span className="text-xs text-red-500 font-medium">Busy at {selected.time}</span>
-                              : <span className="text-xs text-green-600 font-medium">Available</span>
-                            }
-                          </div>
-                          {busy && suggestion && (
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="text-xs text-gray-400">Suggest reschedule to</span>
-                              <button
-                                onClick={e => { e.stopPropagation(); setDoctorId(d.id); setSuggestedTime(suggestion); }}
-                                className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors
-                                  ${doctorId === d.id && suggestedTime === suggestion
-                                    ? 'bg-amber-500 text-white border-amber-500'
-                                    : 'border-amber-400 text-amber-600 hover:bg-amber-50'}`}>
-                                {suggestion}
-                              </button>
-                            </div>
-                          )}
-                          {busy && !suggestion && (
-                            <p className="text-xs text-gray-400 mt-1">No available slots on this date</p>
-                          )}
-                        </div>
-                      );
-                    })}
+                    <label className="block text-xs font-medium text-gray-600">Assigned Doctor</label>
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm">
+                      <span className="font-medium text-gray-800">
+                        Dr. {doctors.find(d => d.id === selected.doctorId)?.name || selected.doctorName || 'Not assigned'}
+                        {selected.specialty ? ` · ${selected.specialty}` : ''}
+                      </span>
+                    </div>
                   </div>
-                  {suggestedTime && (
-                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                      ⚠ Approving will reschedule this appointment to <strong>{suggestedTime}</strong>
-                    </p>
+
+                  {selected.doctorId && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-medium text-gray-600">
+                        Available {selected.time || ''} Slots on {selected.date}
+                        {selected.time && <span className="ml-1 px-1.5 py-0.5 bg-steelblue-100 text-steelblue-600 rounded text-[10px] font-semibold">{selected.time} preferred</span>}
+                      </label>
+                      {availableSlots.length === 0 ? (
+                        <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">No available {selected.time || ''} slots for this doctor on {selected.date}.</p>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableSlots.map(slot => (
+                            <button key={slot} onClick={() => setAssignedTime(slot)}
+                              className={`py-1.5 rounded-lg border text-xs font-medium transition-colors
+                                ${assignedTime === slot ? 'border-steelblue-500 bg-steelblue-500 text-white' : 'border-gray-200 hover:border-steelblue-300 text-gray-700'}`}>
+                              {slot}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <p className="text-xs text-gray-400">Availability checked for {selected.date} at {selected.time}</p>
                 </div>
               )}
 
@@ -332,8 +332,8 @@ const Appointments = () => {
                       Cancel Appointment
                     </button>
                     {!selected.walkIn && (
-                      <button onClick={handleApprove} disabled={saving}
-                        className="flex-1 py-2 rounded-lg bg-steelblue-500 text-white text-sm font-medium hover:bg-steelblue-600 transition-colors disabled:opacity-50">
+                      <button onClick={handleApprove} disabled={saving || !assignedTime}
+                        className="flex-1 py-2 rounded-lg bg-steelblue-500 text-white text-sm font-medium hover:bg-steelblue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         {saving ? 'Saving...' : 'Approve'}
                       </button>
                     )}

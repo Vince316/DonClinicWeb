@@ -48,7 +48,7 @@ const ManageAdmins = () => {
       <div className="flex-1 ml-64">
         <SuperAdminNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto animate-fade-up">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage Admins</h1>
 
             {loading ? (
@@ -87,8 +87,8 @@ const ManageAdmins = () => {
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-xl">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-xl animate-scale-in">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-lg font-bold text-gray-900">Admin Details</h2>
               <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>

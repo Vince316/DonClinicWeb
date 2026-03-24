@@ -39,8 +39,8 @@ const AdminNavbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 fixed top-0 right-0 left-64 z-10">
-      <div className="px-6 h-[60px] flex items-center justify-between">
+    <nav className="bg-white fixed top-0 right-0 left-64 z-10">
+      <div className="px-6 h-[72px] flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
         <div className="relative" ref={ref}>
           <button onClick={handleOpen} className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
@@ -55,7 +55,7 @@ const AdminNavbar = () => {
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-down">
               <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">Notifications</div>
               {notifications.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-gray-400 text-center">No pending appointments</p>

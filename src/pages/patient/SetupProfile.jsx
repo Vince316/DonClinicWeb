@@ -64,7 +64,7 @@ const SetupProfile = () => {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-steelblue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">DC</div>
+            <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
             <span className="font-semibold text-gray-700">DonClinic</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Set Up Your Profile</h1>

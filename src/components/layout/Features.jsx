@@ -59,6 +59,23 @@ const Features = () => {
   return (
     <section className="py-20 px-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
+
+        {/* Stats Cards */}
+        <div className="flex flex-wrap justify-center gap-6 mb-16">
+          <div className="bg-white px-8 py-5 rounded-xl shadow-sm border border-gray-100 text-center">
+            <div className="text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">10K+</div>
+            <div className="text-gray-600 mt-1">Patients</div>
+          </div>
+          <div className="bg-white px-8 py-5 rounded-xl shadow-sm border border-gray-100 text-center">
+            <div className="text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">50+</div>
+            <div className="text-gray-600 mt-1">Doctors</div>
+          </div>
+          <div className="bg-white px-8 py-5 rounded-xl shadow-sm border border-gray-100 text-center">
+            <div className="text-3xl font-bold bg-gradient-to-r from-steelblue-500 to-steelblue-700 bg-clip-text text-transparent">98%</div>
+            <div className="text-gray-600 mt-1">Satisfaction</div>
+          </div>
+        </div>
+
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why Choose DonClinic?</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -66,9 +83,9 @@ const Features = () => {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow animate-fade-up">
               <div className="w-14 h-14 bg-steelblue-50 rounded-xl flex items-center justify-center mb-4">
                 {feature.icon}
               </div>

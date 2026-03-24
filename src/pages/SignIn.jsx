@@ -58,15 +58,16 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
-      <Link
-        to="/"
-        className="fixed top-4 left-4 p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-50 text-4xl font-black leading-none"
-      >
-        ←
-      </Link>
-      <Card className="w-full max-w-md p-8">
+      <Card className="w-full max-w-md p-8 animate-scale-in">
+        <Link to="/" className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm font-medium mb-6 transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back
+        </Link>
 
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Sign in to your account</p>
         </div>
@@ -83,7 +84,7 @@ const SignIn = () => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter Email"
+            placeholder="john@gmail.com"
             required
           />
 
@@ -156,9 +157,9 @@ const SignIn = () => {
         </div>
 
         <p className="mt-6 text-center text-gray-600">
-          Don't have an account?{' '}
+          Didn't have an account?{' '}
           <Link to="/register" className="text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">
-            Register
+            Sign up
           </Link>
         </p>
       </Card>

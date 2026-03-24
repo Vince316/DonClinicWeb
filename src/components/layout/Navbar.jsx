@@ -31,16 +31,15 @@ const Navbar = () => {
 
   return (
     <nav className={`bg-white fixed top-0 left-0 right-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-md border-b border-gray-100' : 'border-b border-gray-200'}`}>
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between relative">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-steelblue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">DC</div>
-          <span className="font-bold text-gray-900 text-lg">DonClinic</span>
+          <img src="/kapoya.jpg" alt="DonClinic" className="h-12 w-auto" />
         </Link>
 
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop Links — Sign In aligned after last nav link */}
+        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to}
               className={`relative text-base font-semibold transition-colors pb-0.5
@@ -51,9 +50,10 @@ const Navbar = () => {
               )}
             </Link>
           ))}
+
         </div>
 
-        {/* Right Side */}
+        {/* Right Side — only shown when authenticated */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <>
@@ -69,7 +69,6 @@ const Navbar = () => {
               </button>
             </>
           ) : null}
-
           {/* Mobile Hamburger */}
           <button onClick={() => setMenuOpen(!menuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
@@ -88,7 +87,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-1">
+        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-1 animate-fade-down">
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to}
               className={`block px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors
@@ -96,6 +95,12 @@ const Navbar = () => {
               {label}
             </Link>
           ))}
+          {!isAuthenticated && (
+            <Link to="/signin"
+              className="block px-4 py-2.5 rounded-lg text-sm font-semibold bg-steelblue-500 text-white hover:bg-steelblue-600">
+              Sign In
+            </Link>
+          )}
           {isAuthenticated && (
             <div className="pt-2 border-t border-gray-100 space-y-1">
               <Link

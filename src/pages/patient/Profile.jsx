@@ -67,7 +67,7 @@ const Profile = () => {
       <div className="flex-1 ml-64">
         <PatientNavbar />
         <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-lg mx-auto">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">My Profile</h1>
 
             {loading ? <div className="text-center py-12 text-gray-400">Loading...</div> : (

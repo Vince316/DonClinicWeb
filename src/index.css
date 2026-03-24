@@ -12,3 +12,53 @@
   --color-steelblue-800: #224470;
   --color-steelblue-900: #162f58;
 }
+
+/* ── Keyframes ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Animation utilities ── */
+.animate-fade-in       { animation: fadeIn      0.25s ease both; }
+.animate-fade-up       { animation: fadeUp      0.3s  ease both; }
+.animate-fade-down     { animation: fadeDown    0.2s  ease both; }
+.animate-slide-left    { animation: slideInLeft 0.3s  ease both; }
+.animate-slide-right   { animation: slideInRight 0.3s ease both; }
+.animate-scale-in      { animation: scaleIn     0.2s  ease both; }
+
+/* staggered children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* smooth page transitions */
+* { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
