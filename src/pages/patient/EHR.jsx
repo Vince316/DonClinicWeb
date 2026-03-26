@@ -33,6 +33,7 @@ const EHR = () => {
     fetch();
   }, [user]);
 
+  const availableTypes = ['All', ...RECORD_TYPES.filter(t => t.value !== 'All' && records.some(r => r.type === t.value)).map(t => t.value)];
   const visible = filter === 'All' ? records : records.filter(r => r.type === filter);
 
   return (
@@ -45,14 +46,16 @@ const EHR = () => {
             <h1 className="text-2xl font-bold text-gray-900 mb-6">My Health Records</h1>
 
             {/* Filter tabs */}
-            <div className="flex gap-2 flex-wrap mb-5">
-              {RECORD_TYPES.map(t => (
-                <button key={t.value} onClick={() => setFilter(t.value)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === t.value ? 'bg-steelblue-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                  {t.value}
-                </button>
-              ))}
-            </div>
+            {availableTypes.length > 1 && (
+              <div className="flex gap-2 flex-wrap mb-5">
+                {availableTypes.map(t => (
+                  <button key={t} onClick={() => setFilter(t)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === t ? 'bg-steelblue-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {loading ? (
               <div className="text-center py-16 text-gray-400 text-sm">Loading...</div>

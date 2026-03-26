@@ -80,8 +80,8 @@ const SuperAdminReports = () => {
       <SuperAdminSidebar />
       <div className="flex-1 ml-64">
         <SuperAdminNavbar />
-        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="mt-[72px] p-6 bg-gray-50 min-h-screen">
+          <div className="max-w-7xl mx-auto space-y-6 animate-fade-up">
             <h1 className="text-2xl font-bold text-gray-900">System Reports</h1>
 
             {/* Stat Cards */}
@@ -110,7 +110,7 @@ const SuperAdminReports = () => {
                           <span className="font-medium">{count}</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2.5">
-                          <div className="bg-orange-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          <div className="bg-steelblue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );

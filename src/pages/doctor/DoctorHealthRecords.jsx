@@ -67,16 +67,21 @@ const DoctorHealthRecords = () => {
   }, [user]);
 
   const fetchRecords = async (patientId) => {
+    setRecords([]);
     const snap = await getDocs(query(
       collection(db, 'healthRecords'),
-      where('patientId', '==', patientId),
-      where('doctorId', '==', user.uid)
+      where('patientId', '==', patientId)
     ));
-    setRecords(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds));
+    const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+    setSelected(prev => {
+      if (prev?.id === patientId) setRecords(fetched);
+      return prev;
+    });
   };
 
   const handleSelect = (patient) => {
     setSelected(patient);
+    setRecords([]);
     setForm(EMPTY_FORM);
     setMsg(null);
     setShowForm(false);

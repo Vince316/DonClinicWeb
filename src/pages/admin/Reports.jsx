@@ -4,11 +4,12 @@ import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminNavbar from '../../components/admin/AdminNavbar';
 
 const SPECIALTIES = ['Cardiology', 'Dermatology', 'Neurology', 'Ophthalmology', 'Psychiatry', 'Dentistry'];
-const STATUS_COLORS = {
-  Pending: 'bg-yellow-400',
-  Confirmed: 'bg-blue-500',
-  Completed: 'bg-green-500',
-  Cancelled: 'bg-red-400',
+
+const STATUS_CONFIG = {
+  Pending:   { bar: 'bg-amber-400',     badge: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',     dot: 'bg-amber-400' },
+  Confirmed: { bar: 'bg-steelblue-500', badge: 'bg-steelblue-50 text-steelblue-700 ring-1 ring-steelblue-200', dot: 'bg-steelblue-500' },
+  Completed: { bar: 'bg-emerald-500',   badge: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', dot: 'bg-emerald-500' },
+  Cancelled: { bar: 'bg-red-400',       badge: 'bg-red-50 text-red-700 ring-1 ring-red-200',           dot: 'bg-red-400' },
 };
 
 const Reports = () => {
@@ -24,20 +25,13 @@ const Reports = () => {
         getDocs(collection(db, 'appointments')),
       ]);
       const appts = aSnap.docs.map(d => d.data());
-
       const specCount = {};
       const statusCount = {};
       appts.forEach(a => {
         specCount[a.specialty] = (specCount[a.specialty] || 0) + 1;
         statusCount[a.status] = (statusCount[a.status] || 0) + 1;
       });
-
-      setStats({
-        patients: pSnap.size,
-        doctors: dSnap.size,
-        appointments: appts.length,
-        completed: statusCount['Completed'] || 0,
-      });
+      setStats({ patients: pSnap.size, doctors: dSnap.size, appointments: appts.length, completed: statusCount['Completed'] || 0 });
       setBySpecialty(specCount);
       setByStatus(statusCount);
     };
@@ -48,114 +42,125 @@ const Reports = () => {
   const totalStatus = Object.values(byStatus).reduce((a, b) => a + b, 0) || 1;
 
   const statCards = [
-    { label: 'Total Patients', value: stats.patients, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Total Doctors', value: stats.doctors, color: 'bg-green-50 text-green-600' },
-    { label: 'Total Appointments', value: stats.appointments, color: 'bg-purple-50 text-purple-600' },
-    { label: 'Completed', value: stats.completed, color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Total Patients',     value: stats.patients,     bg: 'bg-steelblue-50', ring: 'ring-steelblue-100', dot: 'bg-steelblue-500', color: 'text-steelblue-600' },
+    { label: 'Total Doctors',      value: stats.doctors,      bg: 'bg-emerald-50',   ring: 'ring-emerald-100',   dot: 'bg-emerald-500',   color: 'text-emerald-600' },
+    { label: 'Total Appointments', value: stats.appointments, bg: 'bg-violet-50',    ring: 'ring-violet-100',    dot: 'bg-violet-500',    color: 'text-violet-600' },
+    { label: 'Completed',          value: stats.completed,    bg: 'bg-amber-50',     ring: 'ring-amber-100',     dot: 'bg-amber-400',     color: 'text-amber-600' },
   ];
 
   return (
-    <div className="flex">
+    <div className="flex bg-gray-50 min-h-screen">
       <AdminSidebar />
       <div className="flex-1 ml-64">
         <AdminNavbar />
-        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">Reports & Statistics</h1>
+        <main className="mt-[72px] p-6 space-y-5">
 
-            {/* Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {statCards.map(c => (
-                <div key={c.label} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <p className="text-sm text-gray-500">{c.label}</p>
-                  <p className={`text-3xl font-bold mt-1 ${c.color.split(' ')[1]}`}>{c.value}</p>
-                </div>
-              ))}
-            </div>
+          <div className="animate-fade-up">
+            <h1 className="text-xl font-bold text-gray-900">Reports & Statistics</h1>
+            <p className="text-sm text-gray-400 mt-0.5">Overview of clinic performance and appointment data</p>
+          </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Bar Chart — Appointments by Specialty */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-base font-semibold text-gray-800 mb-4">Appointments by Specialty</h2>
-                <div className="space-y-3">
-                  {SPECIALTIES.map(s => {
-                    const count = bySpecialty[s] || 0;
-                    const pct = Math.round((count / maxSpec) * 100);
-                    return (
-                      <div key={s}>
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span>{s}</span>
-                          <span className="font-medium">{count}</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2.5">
-                          <div className="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
+          {/* Stat Cards */}
+          <div className="grid grid-cols-4 gap-4 stagger animate-fade-up">
+            {statCards.map(c => (
+              <div key={c.label} className={`${c.bg} ring-1 ${c.ring} rounded-2xl px-5 py-4 hover-lift`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`w-2 h-2 rounded-full ${c.dot}`} />
+                  <span className="text-xs font-medium text-gray-500">{c.label}</span>
                 </div>
+                <p className={`text-3xl font-bold ${c.color}`}>{c.value}</p>
               </div>
+            ))}
+          </div>
 
-              {/* Status Breakdown */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-base font-semibold text-gray-800 mb-4">Appointment Status Breakdown</h2>
-                <div className="space-y-3">
-                  {['Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => {
-                    const count = byStatus[s] || 0;
-                    const pct = Math.round((count / totalStatus) * 100);
-                    return (
-                      <div key={s}>
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span>{s}</span>
-                          <span className="font-medium">{count} ({pct}%)</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2.5">
-                          <div className={`${STATUS_COLORS[s]} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
-                        </div>
+          <div className="grid lg:grid-cols-2 gap-5 animate-fade-up">
+
+            {/* Appointments by Specialty */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">Appointments by Specialty</h2>
+              <div className="space-y-3.5">
+                {SPECIALTIES.map(s => {
+                  const count = bySpecialty[s] || 0;
+                  const pct = Math.round((count / maxSpec) * 100);
+                  return (
+                    <div key={s}>
+                      <div className="flex justify-between text-xs text-gray-600 mb-1.5">
+                        <span className="font-medium">{s}</span>
+                        <span className="text-gray-400">{count}</span>
                       </div>
-                    );
-                  })}
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-wrap gap-3 mt-5">
-                  {['Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
-                    <div key={s} className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <span className={`w-3 h-3 rounded-full ${STATUS_COLORS[s]}`} />
-                      {s}
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className="bg-steelblue-500 h-2 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Summary Table */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-base font-semibold text-gray-800 mb-4">Specialty Summary</h2>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 text-gray-500 font-medium">Specialty</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">Appointments</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">% of Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {SPECIALTIES.map(s => {
-                    const count = bySpecialty[s] || 0;
-                    const pct = stats.appointments ? ((count / stats.appointments) * 100).toFixed(1) : '0.0';
-                    return (
-                      <tr key={s} className="hover:bg-gray-50">
-                        <td className="py-2.5 text-gray-800">{s}</td>
-                        <td className="py-2.5 text-right text-gray-700 font-medium">{count}</td>
-                        <td className="py-2.5 text-right text-gray-500">{pct}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            {/* Status Breakdown */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">Appointment Status Breakdown</h2>
+              <div className="space-y-3.5">
+                {['Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => {
+                  const count = byStatus[s] || 0;
+                  const pct = Math.round((count / totalStatus) * 100);
+                  const cfg = STATUS_CONFIG[s];
+                  return (
+                    <div key={s}>
+                      <div className="flex justify-between text-xs text-gray-600 mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                          <span className="font-medium">{s}</span>
+                        </div>
+                        <span className="text-gray-400">{count} ({pct}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className={`${cfg.bar} h-2 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-gray-50">
+                {['Pending', 'Confirmed', 'Completed', 'Cancelled'].map(s => (
+                  <span key={s} className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_CONFIG[s].badge}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[s].dot}`} />
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Summary Table */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-up">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900">Specialty Summary</h2>
+            </div>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/70">
+                  {['Specialty', 'Appointments', '% of Total'].map((h, i) => (
+                    <th key={h} className={`px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {SPECIALTIES.map(s => {
+                  const count = bySpecialty[s] || 0;
+                  const pct = stats.appointments ? ((count / stats.appointments) * 100).toFixed(1) : '0.0';
+                  return (
+                    <tr key={s} className="hover:bg-gray-50/60 transition-all duration-150">
+                      <td className="px-5 py-4 text-sm font-semibold text-gray-800">{s}</td>
+                      <td className="px-5 py-4 text-sm text-gray-500 text-right font-medium">{count}</td>
+                      <td className="px-5 py-4 text-sm text-gray-400 text-right">{pct}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
         </main>
       </div>
     </div>

@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import TermsModal from '../ui/TermsModal';
+import PrivacyModal from '../ui/PrivacyModal';
 
 const Footer = () => {
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   return (
     <footer className="bg-gray-900 text-white py-12 px-6">
       <div className="max-w-7xl mx-auto">
@@ -47,9 +52,16 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
+        <div className="border-t border-gray-800 pt-6 text-center text-sm text-gray-500 space-y-2">
           <p>© {new Date().getFullYear()} DonClinic. All rights reserved.</p>
+          <p className="flex items-center justify-center gap-4">
+            <button onClick={() => setShowTerms(true)} className="hover:text-white transition-colors">Terms & Conditions</button>
+            <span>·</span>
+            <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors">Privacy Policy</button>
+          </p>
         </div>
+        {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+        {showPrivacy && <PrivacyModal onClose={() => setShowPrivacy(false)} />}
       </div>
     </footer>
   );

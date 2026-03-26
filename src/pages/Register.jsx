@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
+import TermsModal from '../components/ui/TermsModal';
+import PrivacyModal from '../components/ui/PrivacyModal';
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -27,6 +29,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -224,7 +228,7 @@ const Register = () => {
                   disabled={loading || (codeSent && timer > 0) || emailExists}
                   className="px-4 py-2.5 bg-steelblue-500 text-white rounded-lg hover:bg-steelblue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
                 >
-                  {loading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send Code'}
+                  {loading ? 'Sending...' : codeSent && timer > 0 ? `${timer}s` : 'Send OTP'}
                 </button>
               </div>
               {emailExists && (
@@ -318,9 +322,9 @@ const Register = () => {
               <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="mt-1 w-4 h-4 text-steelblue-500 border-gray-300 rounded focus:ring-steelblue-400" required />
               <label className="text-sm text-gray-700">
                 I agree to the{' '}
-                <Link to="/terms" className="text-steelblue-500 hover:text-steelblue-600 font-medium">Terms and Conditions</Link>
+                <button type="button" onClick={() => setShowTerms(true)} className="text-steelblue-500 hover:text-steelblue-600 font-medium">Terms and Conditions</button>
                 {' '}and{' '}
-                <Link to="/privacy" className="text-steelblue-500 hover:text-steelblue-600 font-medium">Privacy Policy</Link>
+                <button type="button" onClick={() => setShowPrivacy(true)} className="text-steelblue-500 hover:text-steelblue-600 font-medium">Privacy Policy</button>
               </label>
             </div>
 
@@ -336,6 +340,8 @@ const Register = () => {
           <Link to="/signin" className="text-steelblue-500 hover:text-steelblue-600 hover:underline font-medium">Sign In</Link>
         </p>
       </Card>
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+      {showPrivacy && <PrivacyModal onClose={() => setShowPrivacy(false)} />}
     </div>
   );
 };

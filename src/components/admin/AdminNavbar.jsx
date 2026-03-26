@@ -41,7 +41,7 @@ const AdminNavbar = () => {
   return (
     <nav className="bg-white fixed top-0 right-0 left-64 z-10">
       <div className="px-6 h-[72px] flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+        <h1 className="text-xl font-semibold text-gray-900"></h1>
         <div className="relative" ref={ref}>
           <button onClick={handleOpen} className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

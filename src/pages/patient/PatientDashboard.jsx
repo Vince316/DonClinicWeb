@@ -5,99 +5,167 @@ import { useAuth } from '../../context/AuthContext';
 import PatientSidebar from '../../components/patient/PatientSidebar';
 import PatientNavbar from '../../components/patient/PatientNavbar';
 
+const STATUS_STYLE = {
+  Confirmed: 'bg-steelblue-50 text-steelblue-700 ring-1 ring-steelblue-200',
+  Pending:   'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  Completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  Cancelled: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+};
+const STATUS_DOT = {
+  Confirmed: 'bg-steelblue-500', Pending: 'bg-amber-400',
+  Completed: 'bg-emerald-500',   Cancelled: 'bg-red-400',
+};
+
+const Badge = ({ status }) => (
+  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_STYLE[status] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status] || 'bg-gray-400'}`} />
+    {status}
+  </span>
+);
+
 const PatientDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!user?.uid) return;
-      try {
-        const q = query(collection(db, 'appointments'), where('patientId', '==', user.uid));
-        const snap = await getDocs(q);
-        setAppointments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (error) { console.error(error); }
-    };
-    fetchAppointments();
+    if (!user?.uid) return;
+    getDocs(query(collection(db, 'appointments'), where('patientId', '==', user.uid)))
+      .then(snap => setAppointments(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+      .catch(console.error);
   }, [user]);
 
+  const confirmed = appointments.filter(a => a.status === 'Confirmed');
+  const pending   = appointments.filter(a => a.status === 'Pending');
+
+  const cards = [
+    { label: 'Total Appointments', value: appointments.length, bg: 'bg-steelblue-50', ring: 'ring-steelblue-100', dot: 'bg-steelblue-500', color: 'text-steelblue-600' },
+    { label: 'Upcoming',           value: confirmed.length,    bg: 'bg-emerald-50',   ring: 'ring-emerald-100',   dot: 'bg-emerald-500',   color: 'text-emerald-600' },
+    { label: 'Pending',            value: pending.length,      bg: 'bg-amber-50',     ring: 'ring-amber-100',     dot: 'bg-amber-400',     color: 'text-amber-600' },
+  ];
+
+  const EmptyState = ({ msg }) => (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <p className="text-sm text-gray-400">{msg}</p>
+    </div>
+  );
+
   return (
-    <div className="flex">
+    <div className="flex bg-gray-50 min-h-screen">
       <PatientSidebar />
       <div className="flex-1 ml-64">
         <PatientNavbar />
-        <main className="mt-[60px] p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto animate-fade-up">
-            <div className="flex items-center justify-between mb-6">
+        <main className="mt-[72px] p-6 space-y-5">
+
+          <div className="animate-fade-up">
+            <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.name || 'Patient'}</h1>
+            <p className="text-sm text-gray-400 mt-0.5">Here's your health overview</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 stagger animate-fade-up">
+            {cards.map(c => (
+              <button key={c.label} onClick={() => navigate('/patient/appointments')}
+                className={`${c.bg} ring-1 ${c.ring} rounded-2xl px-5 py-4 text-left hover-lift transition-all`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`w-2 h-2 rounded-full ${c.dot}`} />
+                  <span className="text-xs font-medium text-gray-500">{c.label}</span>
+                </div>
+                <p className={`text-3xl font-bold ${c.color}`}>{c.value}</p>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-5 animate-fade-up">
+
+            {/* Recent Appointments */}
+            <div className="space-y-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.name || 'Patient'}</h1>
-                <p className="text-gray-500">Here's your health overview.</p>
+                <h2 className="text-sm font-bold text-gray-900">Recent Appointments</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Your latest activity</p>
               </div>
+              {appointments.length === 0 ? <EmptyState msg="No appointments yet." /> : (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/70">
+                        {['Doctor', 'Date', 'Status'].map(h => (
+                          <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {appointments.slice(0, 5).map(a => (
+                        <tr key={a.id} onClick={() => navigate('/patient/appointments')}
+                          className="hover:bg-steelblue-50/60 cursor-pointer transition-all duration-150">
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-steelblue-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[11px] font-bold text-steelblue-600">{(a.doctorName || '?')[0].toUpperCase()}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-gray-800">{a.doctorName || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-sm text-gray-500 font-medium">{a.date}</td>
+                          <td className="px-5 py-3.5"><Badge status={a.status} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <button onClick={() => navigate('/patient/appointments')}
+                className="w-full py-2.5 bg-white border border-gray-100 shadow-sm rounded-2xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
+                View All Appointments
+              </button>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-6 mb-8 stagger">
-              <div onClick={() => navigate('/patient/appointments')} className="bg-white p-6 rounded-xl border border-gray-200 animate-fade-up cursor-pointer hover:shadow-md transition-shadow">
-                <p className="text-sm text-gray-500">Total Appointments</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{appointments.length}</p>
+            {/* Upcoming */}
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-sm font-bold text-gray-900">Upcoming Appointments</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Confirmed visits</p>
               </div>
-              <div onClick={() => navigate('/patient/appointments')} className="bg-white p-6 rounded-xl border border-blue-200 animate-fade-up cursor-pointer hover:shadow-md transition-shadow">
-                <p className="text-sm text-gray-500">Upcoming</p>
-                <p className="text-3xl font-bold text-blue-500 mt-1">{appointments.filter(a => a.status === 'Confirmed').length}</p>
-              </div>
-              <div onClick={() => navigate('/patient/appointments')} className="bg-white p-6 rounded-xl border border-gray-200 animate-fade-up cursor-pointer hover:shadow-md transition-shadow">
-                <p className="text-sm text-gray-500">Pending</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{appointments.filter(a => a.status === 'Pending').length}</p>
-              </div>
+              {confirmed.length === 0 ? <EmptyState msg="No upcoming appointments." /> : (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/70">
+                        {['Doctor', 'Date', 'Time'].map(h => (
+                          <th key={h} className="px-5 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {confirmed.slice(0, 5).map(a => (
+                        <tr key={a.id} onClick={() => navigate('/patient/appointments')}
+                          className="hover:bg-emerald-50/40 cursor-pointer transition-all duration-150">
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[11px] font-bold text-emerald-600">{(a.doctorName || '?')[0].toUpperCase()}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-gray-800">{a.doctorName || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-sm text-gray-500 font-medium">{a.date}</td>
+                          <td className="px-5 py-3.5 text-sm text-gray-500">{a.time}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <button onClick={() => navigate('/patient/book')}
+                className="w-full py-2.5 bg-steelblue-500 rounded-2xl text-sm font-semibold text-white hover:bg-steelblue-600 transition-colors shadow-sm">
+                Book New Appointment
+              </button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Appointments</h2>
-                {appointments.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No appointments yet.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {appointments.slice(0, 5).map(a => (
-                      <div key={a.id} onClick={() => navigate('/patient/appointments')} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{a.doctorName}</p>
-                          <p className="text-xs text-gray-500">
-                            {a.date ? new Date(a.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''} {a.time ? `at ${a.time}` : ''}
-                          </p>
-                        </div>
-                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          a.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' :
-                          a.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>{a.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-white rounded-xl border border-blue-200 p-6">
-                <h2 className="text-lg font-semibold text-blue-600 mb-4">Upcoming Appointments</h2>
-                {appointments.filter(a => a.status === 'Confirmed').length === 0 ? (
-                  <p className="text-gray-500 text-sm">No upcoming appointments.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {appointments.filter(a => a.status === 'Confirmed').slice(0, 5).map(a => (
-                      <div key={a.id} onClick={() => navigate('/patient/appointments')} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">{a.doctorName}</p>
-                          <p className="text-xs text-gray-500">
-                            {a.date ? new Date(a.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''} {a.time ? `at ${a.time}` : ''}
-                          </p>
-                        </div>
-                        <span className="px-3 py-1 text-xs rounded-full font-medium bg-blue-100 text-blue-700">Confirmed</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </main>
       </div>
